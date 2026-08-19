@@ -4,92 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal de Notas</title>
+    
+    <!-- Bibliotecas do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
     <style>
-        :root {
-            --primary: #1565c0;
-            --primary-dark: #0d47a1;
-            --secondary: #f0f4f8;
-            --success: #2e7d32;
-            --danger: #c62828;
-            --text: #333;
-            --border: #cfd8dc;
-        }
-
+        /* MANTIVEMOS EXATAMENTE O MESMO DESIGN DA VERSÃO ANTERIOR */
+        :root { --primary: #1565c0; --primary-dark: #0d47a1; --secondary: #f0f4f8; --success: #2e7d32; --danger: #c62828; --text: #333; --border: #cfd8dc; }
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        
-        body {
-            background-color: #e3f2fd;
-            color: var(--text);
-            margin: 0; padding: 0;
-            display: flex; flex-direction: column; min-height: 100vh;
-        }
-
-        header {
-            background-color: var(--primary);
-            color: white;
-            padding: 1.5rem;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 2rem auto;
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            width: 95%;
-            flex-grow: 1;
-        }
-
+        body { background-color: #e3f2fd; color: var(--text); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        header { background-color: var(--primary); color: white; padding: 1.5rem; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .container { max-width: 900px; margin: 2rem auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 95%; flex-grow: 1; }
         h2, h3 { color: var(--primary-dark); text-align: center; }
-
-        /* Botões */
-        button {
-            background-color: var(--primary); color: white;
-            border: none; padding: 12px 24px; font-size: 16px; font-weight: bold;
-            border-radius: 8px; cursor: pointer; transition: 0.3s;
-            width: 100%;
-        }
+        button { background-color: var(--primary); color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s; width: 100%; }
         button:hover { background-color: var(--primary-dark); }
         .btn-outline { background-color: transparent; color: var(--primary); border: 2px solid var(--primary); }
         .btn-outline:hover { background-color: var(--secondary); color: var(--primary-dark); }
         .btn-small { padding: 6px 12px; font-size: 14px; width: auto; }
-
-        /* Telas */
         .hidden { display: none !important; }
-        
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .box-selecao { text-align: center; padding: 2rem; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.3s; }
         .box-selecao:hover { border-color: var(--primary); background: var(--secondary); }
         .box-selecao h3 { margin: 10px 0 0 0; font-size: 1.5rem; }
         .icone-grande { font-size: 3rem; }
-
-        /* Formulários */
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #555; }
-        input {
-            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 16px;
-        }
+        input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 16px; }
         input:focus { outline: none; border-color: var(--primary); }
-
-        /* Tabelas */
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
         th { background-color: var(--secondary); color: var(--primary-dark); }
         .tag-matricula { background: #ffe0b2; color: #e65100; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; font-size: 1.1em;}
-
-        /* Card do Aluno */
         .card-notas { background: var(--secondary); padding: 20px; border-radius: 12px; margin-top: 20px; }
         .linha-nota { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ddd; }
         .linha-nota:last-child { border: none; }
         .nota-destaque { font-size: 1.2em; font-weight: bold; }
-        
         .resultado-final { margin-top: 20px; padding: 20px; background: white; border-radius: 8px; text-align: center; border: 2px solid var(--border); }
         .aprovado { color: var(--success); }
         .reprovado { color: var(--danger); }
-
         .voltar { margin-bottom: 20px; cursor: pointer; color: var(--primary); font-weight: bold; text-decoration: underline; display: inline-block; }
     </style>
 </head>
@@ -101,7 +54,7 @@
 
     <div class="container">
         
-        <!-- TELA DE SELEÇÃO INICIAL -->
+        <!-- TELA INICIAL -->
         <div id="tela-inicial">
             <h2>Bem-vindo ao Portal!</h2>
             <p style="text-align: center; margin-bottom: 2rem;">Selecione como você deseja acessar o sistema:</p>
@@ -164,11 +117,10 @@
                     <div class="form-group"><label>Recuperação Prova</label><input type="number" id="cad-recp" min="0" max="10"></div>
                     <div class="form-group"><label>Recuperação Trabalho</label><input type="number" id="cad-rect" min="0" max="10"></div>
                 </div>
-                <button onclick="salvarAluno()">Gravar Aluno no Sistema</button>
+                <button onclick="salvarAluno()">Gravar Aluno no Banco de Dados</button>
             </div>
 
             <h3>Alunos Cadastrados</h3>
-            <p style="font-size: 14px; color: #666;">Compartilhe a matrícula (em laranja) com o aluno para que ele possa acessar.</p>
             <div style="overflow-x: auto;">
                 <table>
                     <thead>
@@ -181,7 +133,7 @@
                         </tr>
                     </thead>
                     <tbody id="tabela-alunos">
-                        <!-- Preenchido via JS -->
+                        <tr><td colspan="5" style="text-align:center;">Carregando dados da nuvem...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -215,20 +167,47 @@
     </div>
 
     <script>
-        // Simulando banco de dados usando o armazenamento local do navegador
-        let dbAlunos = JSON.parse(localStorage.getItem('bancoNotasGeo')) || [];
+        // ==========================================
+        // / Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDFVE6MvfuULMDZ7k1uX6qQMRMrgwivJi8",
+  authDomain: "gestao-notas-b00f2.firebaseapp.com",
+  projectId: "gestao-notas-b00f2",
+  storageBucket: "gestao-notas-b00f2.firebasestorage.app",
+  messagingSenderId: "783977819933",
+  appId: "1:783977819933:web:3f948036c3e5efffb83bf4"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "COLE_SUA_CHAVE_AQUI",
+            authDomain: "COLE_SUA_CHAVE_AQUI",
+            projectId: "COLE_SUA_CHAVE_AQUI",
+            storageBucket: "COLE_SUA_CHAVE_AQUI",
+            messagingSenderId: "COLE_SUA_CHAVE_AQUI",
+            appId: "COLE_SUA_CHAVE_AQUI"
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
         // Controle de Telas
         function mostrarTela(idTela) {
             document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
             document.getElementById(idTela).classList.remove('hidden');
-            
-            // Limpa as mensagens de erro ao mudar de tela
             document.getElementById('erro-prof').classList.add('hidden');
             document.getElementById('erro-aluno').classList.add('hidden');
         }
 
-        // Lógica do Professor
+        // Professor
         function entrarProfessor() {
             if(document.getElementById('senha-prof').value === 'prof123') {
                 document.getElementById('senha-prof').value = '';
@@ -239,19 +218,11 @@
             }
         }
 
-        // Gera matrícula Ex: "VI392"
         function gerarMatricula(nome) {
             let letras = nome.replace(/[^A-Za-z]/g, '').substring(0, 2).toUpperCase();
             if(letras.length < 2) letras = "AL"; 
-            let numeros = Math.floor(Math.random() * 900) + 100; // Gera de 100 a 999
-            
-            let novaMatricula = letras + numeros;
-            
-            // Garante que a matrícula seja única
-            let existe = dbAlunos.find(a => a.matricula === novaMatricula);
-            if(existe) return gerarMatricula(nome); // Chama de novo se der colisão
-            
-            return novaMatricula;
+            let numeros = Math.floor(Math.random() * 900) + 100;
+            return letras + numeros;
         }
 
         function getNum(id) {
@@ -265,14 +236,14 @@
             return ((notaProvaValida + notaTrabValida + aluno.assiduidade + aluno.nota4) / 4).toFixed(1);
         }
 
-        function salvarAluno() {
+        // SALVA NO BANCO DO FIREBASE
+        async function salvarAluno() {
             let nome = document.getElementById('cad-nome').value.trim();
             if(!nome) { alert("O nome é obrigatório!"); return; }
 
             let matricula = gerarMatricula(nome);
 
             let novoAluno = {
-                matricula: matricula,
                 nome: nome,
                 prova: getNum('cad-prova'),
                 trabalho: getNum('cad-trab'),
@@ -282,68 +253,84 @@
                 recT: getNum('cad-rect')
             };
 
-            dbAlunos.push(novoAluno);
-            localStorage.setItem('bancoNotasGeo', JSON.stringify(dbAlunos)); // Salva no banco local
-            
-            // Limpar form
-            document.querySelectorAll('input[type="number"], input[type="text"]').forEach(i => i.value = '');
-            
-            atualizarTabela();
-            alert(`Aluno salvo! A matrícula gerada é: ${matricula}`);
+            try {
+                // Comando que grava os dados na nuvem
+                await db.collection("alunos").doc(matricula).set(novoAluno);
+                
+                document.querySelectorAll('input[type="number"], input[type="text"]').forEach(i => i.value = '');
+                atualizarTabela();
+                alert(`Aluno salvo na nuvem com sucesso! A matrícula gerada é: ${matricula}`);
+            } catch (error) {
+                alert("Erro ao salvar: " + error.message);
+            }
         }
 
-        function apagarAluno(matricula) {
-            if(confirm("Tem certeza que deseja apagar as notas deste aluno?")) {
-                dbAlunos = dbAlunos.filter(a => a.matricula !== matricula);
-                localStorage.setItem('bancoNotasGeo', JSON.stringify(dbAlunos));
+        // LÊ OS DADOS DO FIREBASE
+        async function atualizarTabela() {
+            let tbody = document.getElementById('tabela-alunos');
+            
+            try {
+                const querySnapshot = await db.collection("alunos").get();
+                tbody.innerHTML = '';
+                
+                if(querySnapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum aluno cadastrado.</td></tr>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    let a = doc.data();
+                    let matricula = doc.id;
+                    let media = calcularMedia(a);
+                    let sit = media >= 7 ? '<span class="aprovado">Aprovado</span>' : '<span class="reprovado">Reprovado</span>';
+                    
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><span class="tag-matricula">${matricula}</span></td>
+                        <td>${a.nome}</td>
+                        <td><strong>${media}</strong></td>
+                        <td>${sit}</td>
+                        <td><button class="btn-small btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="apagarAluno('${matricula}')">Excluir</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Erro ao carregar dados. Verifique o Firebase.</td></tr>';
+            }
+        }
+
+        async function apagarAluno(matricula) {
+            if(confirm("Tem certeza que deseja apagar as notas deste aluno definitivamente da nuvem?")) {
+                await db.collection("alunos").doc(matricula).delete();
                 atualizarTabela();
             }
         }
 
-        function atualizarTabela() {
-            let tbody = document.getElementById('tabela-alunos');
-            tbody.innerHTML = '';
-
-            dbAlunos.forEach(a => {
-                let media = calcularMedia(a);
-                let sit = media >= 7 ? '<span class="aprovado">Aprovado</span>' : '<span class="reprovado">Reprovado</span>';
-                
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><span class="tag-matricula">${a.matricula}</span></td>
-                    <td>${a.nome}</td>
-                    <td><strong>${media}</strong></td>
-                    <td>${sit}</td>
-                    <td><button class="btn-small btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="apagarAluno('${a.matricula}')">Excluir</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Lógica do Aluno
-        function entrarAluno() {
+        // BUSCA O ALUNO NO FIREBASE PELO LOGIN
+        async function entrarAluno() {
             let inputMatricula = document.getElementById('matricula-aluno').value.trim().toUpperCase();
             
-            // Procura o aluno no banco
-            let alunoEncontrado = dbAlunos.find(a => a.matricula === inputMatricula);
-
-            if(alunoEncontrado) {
-                document.getElementById('matricula-aluno').value = '';
-                preencherBoletim(alunoEncontrado);
-                mostrarTela('tela-painel-aluno');
-            } else {
-                document.getElementById('erro-aluno').classList.remove('hidden');
+            try {
+                const doc = await db.collection("alunos").doc(inputMatricula).get();
+                
+                if (doc.exists) {
+                    document.getElementById('matricula-aluno').value = '';
+                    preencherBoletim(doc.data());
+                    mostrarTela('tela-painel-aluno');
+                } else {
+                    document.getElementById('erro-aluno').classList.remove('hidden');
+                }
+            } catch (error) {
+                alert("Erro ao conectar com o servidor.");
             }
         }
 
         function preencherBoletim(a) {
             document.getElementById('boletim-nome').textContent = a.nome;
-            
             document.getElementById('bol-prova').textContent = a.prova.toFixed(1);
             document.getElementById('bol-trab').textContent = a.trabalho.toFixed(1);
             document.getElementById('bol-assid').textContent = a.assiduidade.toFixed(1);
             document.getElementById('bol-n4').textContent = a.nota4.toFixed(1);
-            
             document.getElementById('bol-recp').textContent = a.recP > 0 ? a.recP.toFixed(1) : '-';
             document.getElementById('bol-rect').textContent = a.recT > 0 ? a.recT.toFixed(1) : '-';
 
