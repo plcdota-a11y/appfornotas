@@ -3,303 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestão de Turmas</title>
+    <title>Portal de Notas - Geografia</title>
     <style>
         :root {
-            --primary-color: #2b5797;
-            --secondary-color: #eff4ff;
+            --primary: #1565c0;
+            --primary-dark: #0d47a1;
+            --secondary: #f0f4f8;
             --success: #2e7d32;
             --danger: #c62828;
-            --bg-color: #f5f7fa;
-            --text-color: #333;
+            --text: #333;
+            --border: #cfd8dc;
         }
 
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            background-color: #e3f2fd;
+            color: var(--text);
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; min-height: 100vh;
         }
 
         header {
-            background-color: var(--primary-color);
+            background-color: var(--primary);
             color: white;
-            padding: 1rem 2rem;
+            padding: 1.5rem;
             text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 2rem auto;
+            background: white;
             padding: 2rem;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            width: 95%;
             flex-grow: 1;
-            width: 90%;
         }
 
-        /* Login Screen */
-        #login-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 60vh;
-        }
+        h2, h3 { color: var(--primary-dark); text-align: center; }
 
-        #login-screen input {
-            padding: 10px;
-            font-size: 16px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            width: 200px;
-            text-align: center;
-        }
-
+        /* Botões */
         button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
+            background-color: var(--primary); color: white;
+            border: none; padding: 12px 24px; font-size: 16px; font-weight: bold;
+            border-radius: 8px; cursor: pointer; transition: 0.3s;
+            width: 100%;
         }
+        button:hover { background-color: var(--primary-dark); }
+        .btn-outline { background-color: transparent; color: var(--primary); border: 2px solid var(--primary); }
+        .btn-outline:hover { background-color: var(--secondary); color: var(--primary-dark); }
+        .btn-small { padding: 6px 12px; font-size: 14px; width: auto; }
 
-        button:hover {
-            background-color: #1e3f70;
+        /* Telas */
+        .hidden { display: none !important; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .box-selecao { text-align: center; padding: 2rem; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.3s; }
+        .box-selecao:hover { border-color: var(--primary); background: var(--secondary); }
+        .box-selecao h3 { margin: 10px 0 0 0; font-size: 1.5rem; }
+        .icone-grande { font-size: 3rem; }
+
+        /* Formulários */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #555; }
+        input {
+            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 16px;
         }
+        input:focus { outline: none; border-color: var(--primary); }
 
-        /* Navigation */
-        nav {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
+        /* Tabelas */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background-color: var(--secondary); color: var(--primary-dark); }
+        .tag-matricula { background: #ffe0b2; color: #e65100; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; font-size: 1.1em;}
 
-        nav button {
-            background-color: #e0e0e0;
-            color: #333;
-        }
-
-        nav button.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        /* Forms and Inputs */
-        .form-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .form-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-item.full-width {
-            grid-column: span 2;
-        }
-
-        label {
-            font-weight: bold;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-
-        input[type="text"], input[type="number"], select {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        /* Dashboard */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            background-color: var(--secondary-color);
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #d0d7e5;
-        }
-
-        .dash-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #ccc;
-        }
-
-        .dash-item:last-child {
-            border-bottom: none;
-        }
-
-        .highlight {
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-
+        /* Card do Aluno */
+        .card-notas { background: var(--secondary); padding: 20px; border-radius: 12px; margin-top: 20px; }
+        .linha-nota { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ddd; }
+        .linha-nota:last-child { border: none; }
+        .nota-destaque { font-size: 1.2em; font-weight: bold; }
+        
+        .resultado-final { margin-top: 20px; padding: 20px; background: white; border-radius: 8px; text-align: center; border: 2px solid var(--border); }
         .aprovado { color: var(--success); }
         .reprovado { color: var(--danger); }
 
-        .hidden { display: none !important; }
-        .error-msg { color: var(--danger); font-size: 14px; margin-top: 10px; }
+        .voltar { margin-bottom: 20px; cursor: pointer; color: var(--primary); font-weight: bold; text-decoration: underline; display: inline-block; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Gestão de Turmas</h1>
+        <h1>Gestão de Notas - Geografia</h1>
     </header>
 
     <div class="container">
         
-        <!-- TELA DE LOGIN -->
-        <div id="login-screen">
+        <!-- TELA DE SELEÇÃO INICIAL -->
+        <div id="tela-inicial">
+            <h2>Bem-vindo ao Portal!</h2>
+            <p style="text-align: center; margin-bottom: 2rem;">Selecione como você deseja acessar o sistema:</p>
+            <div class="grid-2">
+                <div class="box-selecao" onclick="mostrarTela('tela-login-prof')">
+                    <div class="icone-grande">👨‍🏫</div>
+                    <h3>Sou Professor</h3>
+                    <p>Acessar painel de gestão</p>
+                </div>
+                <div class="box-selecao" onclick="mostrarTela('tela-login-aluno')">
+                    <div class="icone-grande">🎓</div>
+                    <h3>Sou Aluno</h3>
+                    <p>Consultar meu boletim</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOGIN PROFESSOR -->
+        <div id="tela-login-prof" class="hidden">
+            <span class="voltar" onclick="mostrarTela('tela-inicial')">← Voltar</span>
             <h2>Acesso do Professor</h2>
-            <p>Insira a senha de acesso para continuar.</p>
-            <input type="password" id="senha" placeholder="Senha" onkeypress="if(event.key === 'Enter') fazerLogin()">
-            <button onclick="fazerLogin()">Entrar</button>
-            <div id="login-erro" class="error-msg hidden">Senha incorreta. Tente novamente.</div>
+            <div class="form-group" style="max-width: 300px; margin: 0 auto;">
+                <label>Senha de Acesso</label>
+                <input type="password" id="senha-prof" placeholder="Digite a senha..." onkeypress="if(event.key === 'Enter') entrarProfessor()">
+                <button onclick="entrarProfessor()" style="margin-top: 15px;">Entrar</button>
+                <p id="erro-prof" class="reprovado hidden" style="text-align: center; font-size: 14px;">Senha incorreta.</p>
+            </div>
         </div>
 
-        <!-- TELA DO SISTEMA -->
-        <div id="app-screen" class="hidden">
+        <!-- LOGIN ALUNO -->
+        <div id="tela-login-aluno" class="hidden">
+            <span class="voltar" onclick="mostrarTela('tela-inicial')">← Voltar</span>
+            <h2>Acesso do Aluno</h2>
+            <div class="form-group" style="max-width: 300px; margin: 0 auto;">
+                <label>Código de Matrícula</label>
+                <input type="text" id="matricula-aluno" placeholder="Ex: JO123" style="text-transform: uppercase;" onkeypress="if(event.key === 'Enter') entrarAluno()">
+                <button onclick="entrarAluno()" style="margin-top: 15px;">Ver Minhas Notas</button>
+                <p id="erro-aluno" class="reprovado hidden" style="text-align: center; font-size: 14px;">Matrícula não encontrada.</p>
+            </div>
+        </div>
+
+        <!-- PAINEL DO PROFESSOR -->
+        <div id="tela-painel-prof" class="hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Painel de Controle</h2>
+                <button class="btn-outline btn-small" onclick="mostrarTela('tela-inicial')">Sair</button>
+            </div>
+
+            <div style="background: var(--secondary); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="margin-top:0;">Lançar Novo Aluno</h3>
+                <div class="grid-2">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Nome Completo do Aluno</label>
+                        <input type="text" id="cad-nome">
+                    </div>
+                    <div class="form-group"><label>Prova</label><input type="number" id="cad-prova" min="0" max="10"></div>
+                    <div class="form-group"><label>Trabalho</label><input type="number" id="cad-trab" min="0" max="10"></div>
+                    <div class="form-group"><label>Assiduidade</label><input type="number" id="cad-assid" min="0" max="10"></div>
+                    <div class="form-group"><label>Nota 4 (Atividade)</label><input type="number" id="cad-n4" min="0" max="10"></div>
+                    <div class="form-group"><label>Recuperação Prova</label><input type="number" id="cad-recp" min="0" max="10"></div>
+                    <div class="form-group"><label>Recuperação Trabalho</label><input type="number" id="cad-rect" min="0" max="10"></div>
+                </div>
+                <button onclick="salvarAluno()">Gravar Aluno no Sistema</button>
+            </div>
+
+            <h3>Alunos Cadastrados</h3>
+            <p style="font-size: 14px; color: #666;">Compartilhe a matrícula (em laranja) com o aluno para que ele possa acessar.</p>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Matrícula</th>
+                            <th>Nome do Aluno</th>
+                            <th>Média</th>
+                            <th>Situação</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-alunos">
+                        <!-- Preenchido via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PAINEL DO ALUNO -->
+        <div id="tela-painel-aluno" class="hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Meu Boletim de Geografia</h2>
+                <button class="btn-outline btn-small" onclick="mostrarTela('tela-inicial')">Sair</button>
+            </div>
             
-            <nav>
-                <button id="btn-cadastro" class="active" onclick="mudarAba('cadastro')">Lançar Notas</button>
-                <button id="btn-dashboard" onclick="mudarAba('dashboard')">Painel do Aluno</button>
-            </nav>
-
-            <!-- ABA 1: LANÇAMENTO DE NOTAS -->
-            <div id="aba-cadastro">
-                <h3>Cadastrar / Atualizar Aluno</h3>
-                <div class="form-group">
-                    <div class="form-item full-width">
-                        <label>Nome do Aluno</label>
-                        <input type="text" id="cad-nome" placeholder="Ex: João da Silva">
-                    </div>
-                    <div class="form-item">
-                        <label>Nota da Prova</label>
-                        <input type="number" id="cad-prova" min="0" max="10" step="0.1">
-                    </div>
-                    <div class="form-item">
-                        <label>Nota do Trabalho</label>
-                        <input type="number" id="cad-trab" min="0" max="10" step="0.1">
-                    </div>
-                    <div class="form-item">
-                        <label>Assiduidade</label>
-                        <input type="number" id="cad-assid" min="0" max="10" step="0.1">
-                    </div>
-                    <div class="form-item">
-                        <label>Nota 4 (Atividade)</label>
-                        <input type="number" id="cad-n4" min="0" max="10" step="0.1">
-                    </div>
-                    <div class="form-item">
-                        <label>Recuperação da Prova (Opcional)</label>
-                        <input type="number" id="cad-recp" min="0" max="10" step="0.1">
-                    </div>
-                    <div class="form-item">
-                        <label>Recuperação do Trabalho (Opcional)</label>
-                        <input type="number" id="cad-rect" min="0" max="10" step="0.1">
-                    </div>
-                </div>
-                <button onclick="salvarAluno()">Salvar Dados do Aluno</button>
-                <div id="msg-sucesso" style="color: green; margin-top: 10px; display: none;">Aluno salvo com sucesso!</div>
+            <h3 id="boletim-nome" style="color: var(--text);">Aluno: Nome Aqui</h3>
+            
+            <div class="card-notas">
+                <div class="linha-nota"><span>Prova Oficial:</span> <span id="bol-prova" class="nota-destaque"></span></div>
+                <div class="linha-nota"><span>Trabalho Oficial:</span> <span id="bol-trab" class="nota-destaque"></span></div>
+                <div class="linha-nota"><span>Assiduidade:</span> <span id="bol-assid" class="nota-destaque"></span></div>
+                <div class="linha-nota"><span>Atividade (Nota 4):</span> <span id="bol-n4" class="nota-destaque"></span></div>
+                <div class="linha-nota" style="color: #666;"><span>Recuperação da Prova:</span> <span id="bol-recp"></span></div>
+                <div class="linha-nota" style="color: #666;"><span>Recuperação do Trabalho:</span> <span id="bol-rect"></span></div>
             </div>
 
-            <!-- ABA 2: DASHBOARD -->
-            <div id="aba-dashboard" class="hidden">
-                <h3>Consulta de Rendimento</h3>
-                <div class="form-item" style="margin-bottom: 20px;">
-                    <label>Selecione o Aluno:</label>
-                    <select id="select-aluno" onchange="atualizarDashboard()">
-                        <option value="">-- Escolha um aluno --</option>
-                    </select>
-                </div>
-
-                <div id="painel-resultados" class="dashboard-grid hidden">
-                    <div class="dash-item"><span>Prova original:</span> <strong id="res-prova"></strong></div>
-                    <div class="dash-item"><span>Trabalho original:</span> <strong id="res-trab"></strong></div>
-                    <div class="dash-item"><span>Assiduidade:</span> <strong id="res-assid"></strong></div>
-                    <div class="dash-item"><span>Nota 4 (Atividade):</span> <strong id="res-n4"></strong></div>
-                    <div class="dash-item"><span>Recuperação Prova:</span> <strong id="res-recp"></strong></div>
-                    <div class="dash-item"><span>Recuperação Trabalho:</span> <strong id="res-rect"></strong></div>
-                    
-                    <div class="dash-item full-width" style="grid-column: span 2; background-color: white; padding: 15px; border-radius: 5px; margin-top: 10px;">
-                        <span style="font-size: 1.2em;">Média Final Calculada:</span> 
-                        <strong id="res-media" class="highlight" style="font-size: 1.5em; float: right;"></strong>
-                    </div>
-                    <div class="dash-item full-width" style="grid-column: span 2; text-align: center; border: none;">
-                        <h2 id="res-situacao" style="margin: 5px 0;"></h2>
-                    </div>
-                </div>
+            <div class="resultado-final">
+                <p style="font-size: 1.2rem; margin: 0;">Média Final Calculada</p>
+                <h1 id="bol-media" style="font-size: 3rem; margin: 10px 0;"></h1>
+                <h2 id="bol-situacao" style="margin: 0;"></h2>
             </div>
-
         </div>
+
     </div>
 
     <script>
-        // Banco de dados temporário na memória do navegador
-        let alunos = [];
+        // Simulando banco de dados usando o armazenamento local do navegador
+        let dbAlunos = JSON.parse(localStorage.getItem('bancoNotasGeo')) || [];
 
-        // Função de Login
-        function fazerLogin() {
-            const senha = document.getElementById('senha').value;
-            // A SENHA ESTÁ DEFINIDA AQUI:
-            if(senha === 'prof123') {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-screen').classList.remove('hidden');
-            } else {
-                document.getElementById('login-erro').classList.remove('hidden');
-            }
-        }
-
-        // Navegação entre abas
-        function mudarAba(aba) {
-            document.getElementById('btn-cadastro').classList.remove('active');
-            document.getElementById('btn-dashboard').classList.remove('active');
+        // Controle de Telas
+        function mostrarTela(idTela) {
+            document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
+            document.getElementById(idTela).classList.remove('hidden');
             
-            document.getElementById('aba-cadastro').classList.add('hidden');
-            document.getElementById('aba-dashboard').classList.add('hidden');
+            // Limpa as mensagens de erro ao mudar de tela
+            document.getElementById('erro-prof').classList.add('hidden');
+            document.getElementById('erro-aluno').classList.add('hidden');
+        }
 
-            document.getElementById(`btn-${aba}`).classList.add('active');
-            document.getElementById(`aba-${aba}`).classList.remove('hidden');
-
-            if(aba === 'dashboard') {
-                carregarListaAlunos();
+        // Lógica do Professor
+        function entrarProfessor() {
+            if(document.getElementById('senha-prof').value === 'prof123') {
+                document.getElementById('senha-prof').value = '';
+                mostrarTela('tela-painel-prof');
+                atualizarTabela();
+            } else {
+                document.getElementById('erro-prof').classList.remove('hidden');
             }
         }
 
-        // Converter input para número, tratando campos vazios
+        // Gera matrícula Ex: "VI392"
+        function gerarMatricula(nome) {
+            let letras = nome.replace(/[^A-Za-z]/g, '').substring(0, 2).toUpperCase();
+            if(letras.length < 2) letras = "AL"; 
+            let numeros = Math.floor(Math.random() * 900) + 100; // Gera de 100 a 999
+            
+            let novaMatricula = letras + numeros;
+            
+            // Garante que a matrícula seja única
+            let existe = dbAlunos.find(a => a.matricula === novaMatricula);
+            if(existe) return gerarMatricula(nome); // Chama de novo se der colisão
+            
+            return novaMatricula;
+        }
+
         function getNum(id) {
             let val = document.getElementById(id).value;
             return val === "" ? 0 : parseFloat(val);
         }
 
-        // Lançar Notas / Cadastrar
+        function calcularMedia(aluno) {
+            let notaProvaValida = Math.max(aluno.prova, aluno.recP);
+            let notaTrabValida = Math.max(aluno.trabalho, aluno.recT);
+            return ((notaProvaValida + notaTrabValida + aluno.assiduidade + aluno.nota4) / 4).toFixed(1);
+        }
+
         function salvarAluno() {
             let nome = document.getElementById('cad-nome').value.trim();
-            if(nome === "") {
-                alert("Por favor, insira o nome do aluno.");
-                return;
-            }
+            if(!nome) { alert("O nome é obrigatório!"); return; }
 
-            let alunoData = {
+            let matricula = gerarMatricula(nome);
+
+            let novoAluno = {
+                matricula: matricula,
                 nome: nome,
                 prova: getNum('cad-prova'),
                 trabalho: getNum('cad-trab'),
@@ -309,74 +282,83 @@
                 recT: getNum('cad-rect')
             };
 
-            // Verifica se o aluno já existe para atualizar, ou adiciona um novo
-            let index = alunos.findIndex(a => a.nome.toLowerCase() === nome.toLowerCase());
-            if(index >= 0) {
-                alunos[index] = alunoData;
-            } else {
-                alunos.push(alunoData);
-            }
-
-            // Limpa o formulário
-            document.querySelectorAll('input[type="number"], input[type="text"]').forEach(input => input.value = '');
+            dbAlunos.push(novoAluno);
+            localStorage.setItem('bancoNotasGeo', JSON.stringify(dbAlunos)); // Salva no banco local
             
-            // Exibe mensagem
-            let msg = document.getElementById('msg-sucesso');
-            msg.style.display = 'block';
-            setTimeout(() => msg.style.display = 'none', 3000);
+            // Limpar form
+            document.querySelectorAll('input[type="number"], input[type="text"]').forEach(i => i.value = '');
+            
+            atualizarTabela();
+            alert(`Aluno salvo! A matrícula gerada é: ${matricula}`);
         }
 
-        // Preenche o menu suspenso no Dashboard
-        function carregarListaAlunos() {
-            let select = document.getElementById('select-aluno');
-            select.innerHTML = '<option value="">-- Escolha um aluno --</option>';
-            
-            alunos.forEach((aluno, index) => {
-                let opt = document.createElement('option');
-                opt.value = index;
-                opt.textContent = aluno.nome;
-                select.appendChild(opt);
+        function apagarAluno(matricula) {
+            if(confirm("Tem certeza que deseja apagar as notas deste aluno?")) {
+                dbAlunos = dbAlunos.filter(a => a.matricula !== matricula);
+                localStorage.setItem('bancoNotasGeo', JSON.stringify(dbAlunos));
+                atualizarTabela();
+            }
+        }
+
+        function atualizarTabela() {
+            let tbody = document.getElementById('tabela-alunos');
+            tbody.innerHTML = '';
+
+            dbAlunos.forEach(a => {
+                let media = calcularMedia(a);
+                let sit = media >= 7 ? '<span class="aprovado">Aprovado</span>' : '<span class="reprovado">Reprovado</span>';
+                
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="tag-matricula">${a.matricula}</span></td>
+                    <td>${a.nome}</td>
+                    <td><strong>${media}</strong></td>
+                    <td>${sit}</td>
+                    <td><button class="btn-small btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="apagarAluno('${a.matricula}')">Excluir</button></td>
+                `;
+                tbody.appendChild(tr);
             });
-            
-            document.getElementById('painel-resultados').classList.add('hidden');
         }
 
-        // Calcula e exibe os resultados
-        function atualizarDashboard() {
-            let index = document.getElementById('select-aluno').value;
-            let painel = document.getElementById('painel-resultados');
-
-            if(index === "") {
-                painel.classList.add('hidden');
-                return;
-            }
-
-            let a = alunos[index];
-            painel.classList.remove('hidden');
-
-            // Exibir notas brutas
-            document.getElementById('res-prova').textContent = a.prova.toFixed(1);
-            document.getElementById('res-trab').textContent = a.trabalho.toFixed(1);
-            document.getElementById('res-assid').textContent = a.assiduidade.toFixed(1);
-            document.getElementById('res-n4').textContent = a.nota4.toFixed(1);
-            document.getElementById('res-recp').textContent = a.recP > 0 ? a.recP.toFixed(1) : '-';
-            document.getElementById('res-rect').textContent = a.recT > 0 ? a.recT.toFixed(1) : '-';
-
-            // A Lógica Matemática Principal
-            let notaProvaValida = Math.max(a.prova, a.recP);
-            let notaTrabValida = Math.max(a.trabalho, a.recT);
+        // Lógica do Aluno
+        function entrarAluno() {
+            let inputMatricula = document.getElementById('matricula-aluno').value.trim().toUpperCase();
             
-            let mediaFinal = (notaProvaValida + notaTrabValida + a.assiduidade + a.nota4) / 4;
-            
-            document.getElementById('res-media').textContent = mediaFinal.toFixed(1);
+            // Procura o aluno no banco
+            let alunoEncontrado = dbAlunos.find(a => a.matricula === inputMatricula);
 
-            let sitEl = document.getElementById('res-situacao');
-            if(mediaFinal >= 7) {
-                sitEl.textContent = "APROVADO";
-                sitEl.className = "aprovado";
+            if(alunoEncontrado) {
+                document.getElementById('matricula-aluno').value = '';
+                preencherBoletim(alunoEncontrado);
+                mostrarTela('tela-painel-aluno');
             } else {
-                sitEl.textContent = "REPROVADO";
+                document.getElementById('erro-aluno').classList.remove('hidden');
+            }
+        }
+
+        function preencherBoletim(a) {
+            document.getElementById('boletim-nome').textContent = a.nome;
+            
+            document.getElementById('bol-prova').textContent = a.prova.toFixed(1);
+            document.getElementById('bol-trab').textContent = a.trabalho.toFixed(1);
+            document.getElementById('bol-assid').textContent = a.assiduidade.toFixed(1);
+            document.getElementById('bol-n4').textContent = a.nota4.toFixed(1);
+            
+            document.getElementById('bol-recp').textContent = a.recP > 0 ? a.recP.toFixed(1) : '-';
+            document.getElementById('bol-rect').textContent = a.recT > 0 ? a.recT.toFixed(1) : '-';
+
+            let mediaFinal = calcularMedia(a);
+            document.getElementById('bol-media').textContent = mediaFinal;
+
+            let sitEl = document.getElementById('bol-situacao');
+            if(mediaFinal >= 7) {
+                sitEl.textContent = "Situação: APROVADO";
+                sitEl.className = "aprovado";
+                document.getElementById('bol-media').className = "aprovado";
+            } else {
+                sitEl.textContent = "Situação: REPROVADO";
                 sitEl.className = "reprovado";
+                document.getElementById('bol-media').className = "reprovado";
             }
         }
     </script>
