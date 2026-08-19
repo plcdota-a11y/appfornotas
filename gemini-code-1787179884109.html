@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão de Turmas - Geografia</title>
+    <style>
+        :root {
+            --primary-color: #2b5797;
+            --secondary-color: #eff4ff;
+            --success: #2e7d32;
+            --danger: #c62828;
+            --bg-color: #f5f7fa;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            flex-grow: 1;
+            width: 90%;
+        }
+
+        /* Login Screen */
+        #login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+        }
+
+        #login-screen input {
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+            text-align: center;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1e3f70;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        nav button {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        nav button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Forms and Inputs */
+        .form-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-item.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        input[type="text"], input[type="number"], select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* Dashboard */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background-color: var(--secondary-color);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #d0d7e5;
+        }
+
+        .dash-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .dash-item:last-child {
+            border-bottom: none;
+        }
+
+        .highlight {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .aprovado { color: var(--success); }
+        .reprovado { color: var(--danger); }
+
+        .hidden { display: none !important; }
+        .error-msg { color: var(--danger); font-size: 14px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Gestão de Turmas - Geografia</h1>
+    </header>
+
+    <div class="container">
+        
+        <!-- TELA DE LOGIN -->
+        <div id="login-screen">
+            <h2>Acesso do Professor</h2>
+            <p>Insira a senha de acesso para continuar.</p>
+            <input type="password" id="senha" placeholder="Senha" onkeypress="if(event.key === 'Enter') fazerLogin()">
+            <button onclick="fazerLogin()">Entrar</button>
+            <div id="login-erro" class="error-msg hidden">Senha incorreta. Tente novamente.</div>
+        </div>
+
+        <!-- TELA DO SISTEMA -->
+        <div id="app-screen" class="hidden">
+            
+            <nav>
+                <button id="btn-cadastro" class="active" onclick="mudarAba('cadastro')">Lançar Notas</button>
+                <button id="btn-dashboard" onclick="mudarAba('dashboard')">Painel do Aluno</button>
+            </nav>
+
+            <!-- ABA 1: LANÇAMENTO DE NOTAS -->
+            <div id="aba-cadastro">
+                <h3>Cadastrar / Atualizar Aluno</h3>
+                <div class="form-group">
+                    <div class="form-item full-width">
+                        <label>Nome do Aluno</label>
+                        <input type="text" id="cad-nome" placeholder="Ex: João da Silva">
+                    </div>
+                    <div class="form-item">
+                        <label>Nota da Prova</label>
+                        <input type="number" id="cad-prova" min="0" max="10" step="0.1">
+                    </div>
+                    <div class="form-item">
+                        <label>Nota do Trabalho</label>
+                        <input type="number" id="cad-trab" min="0" max="10" step="0.1">
+                    </div>
+                    <div class="form-item">
+                        <label>Assiduidade</label>
+                        <input type="number" id="cad-assid" min="0" max="10" step="0.1">
+                    </div>
+                    <div class="form-item">
+                        <label>Nota 4 (Atividade)</label>
+                        <input type="number" id="cad-n4" min="0" max="10" step="0.1">
+                    </div>
+                    <div class="form-item">
+                        <label>Recuperação da Prova (Opcional)</label>
+                        <input type="number" id="cad-recp" min="0" max="10" step="0.1">
+                    </div>
+                    <div class="form-item">
+                        <label>Recuperação do Trabalho (Opcional)</label>
+                        <input type="number" id="cad-rect" min="0" max="10" step="0.1">
+                    </div>
+                </div>
+                <button onclick="salvarAluno()">Salvar Dados do Aluno</button>
+                <div id="msg-sucesso" style="color: green; margin-top: 10px; display: none;">Aluno salvo com sucesso!</div>
+            </div>
+
+            <!-- ABA 2: DASHBOARD -->
+            <div id="aba-dashboard" class="hidden">
+                <h3>Consulta de Rendimento</h3>
+                <div class="form-item" style="margin-bottom: 20px;">
+                    <label>Selecione o Aluno:</label>
+                    <select id="select-aluno" onchange="atualizarDashboard()">
+                        <option value="">-- Escolha um aluno --</option>
+                    </select>
+                </div>
+
+                <div id="painel-resultados" class="dashboard-grid hidden">
+                    <div class="dash-item"><span>Prova original:</span> <strong id="res-prova"></strong></div>
+                    <div class="dash-item"><span>Trabalho original:</span> <strong id="res-trab"></strong></div>
+                    <div class="dash-item"><span>Assiduidade:</span> <strong id="res-assid"></strong></div>
+                    <div class="dash-item"><span>Nota 4 (Atividade):</span> <strong id="res-n4"></strong></div>
+                    <div class="dash-item"><span>Recuperação Prova:</span> <strong id="res-recp"></strong></div>
+                    <div class="dash-item"><span>Recuperação Trabalho:</span> <strong id="res-rect"></strong></div>
+                    
+                    <div class="dash-item full-width" style="grid-column: span 2; background-color: white; padding: 15px; border-radius: 5px; margin-top: 10px;">
+                        <span style="font-size: 1.2em;">Média Final Calculada:</span> 
+                        <strong id="res-media" class="highlight" style="font-size: 1.5em; float: right;"></strong>
+                    </div>
+                    <div class="dash-item full-width" style="grid-column: span 2; text-align: center; border: none;">
+                        <h2 id="res-situacao" style="margin: 5px 0;"></h2>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Banco de dados temporário na memória do navegador
+        let alunos = [];
+
+        // Função de Login
+        function fazerLogin() {
+            const senha = document.getElementById('senha').value;
+            // A SENHA ESTÁ DEFINIDA AQUI:
+            if(senha === 'prof123') {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('hidden');
+            } else {
+                document.getElementById('login-erro').classList.remove('hidden');
+            }
+        }
+
+        // Navegação entre abas
+        function mudarAba(aba) {
+            document.getElementById('btn-cadastro').classList.remove('active');
+            document.getElementById('btn-dashboard').classList.remove('active');
+            
+            document.getElementById('aba-cadastro').classList.add('hidden');
+            document.getElementById('aba-dashboard').classList.add('hidden');
+
+            document.getElementById(`btn-${aba}`).classList.add('active');
+            document.getElementById(`aba-${aba}`).classList.remove('hidden');
+
+            if(aba === 'dashboard') {
+                carregarListaAlunos();
+            }
+        }
+
+        // Converter input para número, tratando campos vazios
+        function getNum(id) {
+            let val = document.getElementById(id).value;
+            return val === "" ? 0 : parseFloat(val);
+        }
+
+        // Lançar Notas / Cadastrar
+        function salvarAluno() {
+            let nome = document.getElementById('cad-nome').value.trim();
+            if(nome === "") {
+                alert("Por favor, insira o nome do aluno.");
+                return;
+            }
+
+            let alunoData = {
+                nome: nome,
+                prova: getNum('cad-prova'),
+                trabalho: getNum('cad-trab'),
+                assiduidade: getNum('cad-assid'),
+                nota4: getNum('cad-n4'),
+                recP: getNum('cad-recp'),
+                recT: getNum('cad-rect')
+            };
+
+            // Verifica se o aluno já existe para atualizar, ou adiciona um novo
+            let index = alunos.findIndex(a => a.nome.toLowerCase() === nome.toLowerCase());
+            if(index >= 0) {
+                alunos[index] = alunoData;
+            } else {
+                alunos.push(alunoData);
+            }
+
+            // Limpa o formulário
+            document.querySelectorAll('input[type="number"], input[type="text"]').forEach(input => input.value = '');
+            
+            // Exibe mensagem
+            let msg = document.getElementById('msg-sucesso');
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 3000);
+        }
+
+        // Preenche o menu suspenso no Dashboard
+        function carregarListaAlunos() {
+            let select = document.getElementById('select-aluno');
+            select.innerHTML = '<option value="">-- Escolha um aluno --</option>';
+            
+            alunos.forEach((aluno, index) => {
+                let opt = document.createElement('option');
+                opt.value = index;
+                opt.textContent = aluno.nome;
+                select.appendChild(opt);
+            });
+            
+            document.getElementById('painel-resultados').classList.add('hidden');
+        }
+
+        // Calcula e exibe os resultados
+        function atualizarDashboard() {
+            let index = document.getElementById('select-aluno').value;
+            let painel = document.getElementById('painel-resultados');
+
+            if(index === "") {
+                painel.classList.add('hidden');
+                return;
+            }
+
+            let a = alunos[index];
+            painel.classList.remove('hidden');
+
+            // Exibir notas brutas
+            document.getElementById('res-prova').textContent = a.prova.toFixed(1);
+            document.getElementById('res-trab').textContent = a.trabalho.toFixed(1);
+            document.getElementById('res-assid').textContent = a.assiduidade.toFixed(1);
+            document.getElementById('res-n4').textContent = a.nota4.toFixed(1);
+            document.getElementById('res-recp').textContent = a.recP > 0 ? a.recP.toFixed(1) : '-';
+            document.getElementById('res-rect').textContent = a.recT > 0 ? a.recT.toFixed(1) : '-';
+
+            // A Lógica Matemática Principal
+            let notaProvaValida = Math.max(a.prova, a.recP);
+            let notaTrabValida = Math.max(a.trabalho, a.recT);
+            
+            let mediaFinal = (notaProvaValida + notaTrabValida + a.assiduidade + a.nota4) / 4;
+            
+            document.getElementById('res-media').textContent = mediaFinal.toFixed(1);
+
+            let sitEl = document.getElementById('res-situacao');
+            if(mediaFinal >= 7) {
+                sitEl.textContent = "APROVADO";
+                sitEl.className = "aprovado";
+            } else {
+                sitEl.textContent = "REPROVADO";
+                sitEl.className = "reprovado";
+            }
+        }
+    </script>
+</body>
+</html>
