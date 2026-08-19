@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Notas</title>
+    <title>Portal de Notas - Geografia</title>
     
     <!-- Bibliotecas do Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <style>
-        /* MANTIVEMOS EXATAMENTE O MESMO DESIGN DA VERSÃO ANTERIOR */
         :root { --primary: #1565c0; --primary-dark: #0d47a1; --secondary: #f0f4f8; --success: #2e7d32; --danger: #c62828; --text: #333; --border: #cfd8dc; }
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #e3f2fd; color: var(--text); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
@@ -168,36 +167,20 @@
 
     <script>
         // ==========================================
-        // / Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDFVE6MvfuULMDZ7k1uX6qQMRMrgwivJi8",
-  authDomain: "gestao-notas-b00f2.firebaseapp.com",
-  projectId: "gestao-notas-b00f2",
-  storageBucket: "gestao-notas-b00f2.firebasestorage.app",
-  messagingSenderId: "783977819933",
-  appId: "1:783977819933:web:3f948036c3e5efffb83bf4"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-        // ==========================================
+        // Configuração exata para o Firebase Versão 8 (Compatível)
         const firebaseConfig = {
-            apiKey: "COLE_SUA_CHAVE_AQUI",
-            authDomain: "COLE_SUA_CHAVE_AQUI",
-            projectId: "COLE_SUA_CHAVE_AQUI",
-            storageBucket: "COLE_SUA_CHAVE_AQUI",
-            messagingSenderId: "COLE_SUA_CHAVE_AQUI",
-            appId: "COLE_SUA_CHAVE_AQUI"
+            apiKey: "AIzaSyDFVE6MvfuULMDZ7k1uX6qQMRMrgwivJi8",
+            authDomain: "gestao-notas-b00f2.firebaseapp.com",
+            projectId: "gestao-notas-b00f2",
+            storageBucket: "gestao-notas-b00f2.firebasestorage.app",
+            messagingSenderId: "783977819933",
+            appId: "1:783977819933:web:3f948036c3e5efffb83bf4"
         };
 
         // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        // ==========================================
 
         // Controle de Telas
         function mostrarTela(idTela) {
@@ -295,7 +278,7 @@ const app = initializeApp(firebaseConfig);
                     tbody.appendChild(tr);
                 });
             } catch (error) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Erro ao carregar dados. Verifique o Firebase.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Erro ao carregar dados. Verifique o Firebase (Regras de Segurança).</td></tr>';
             }
         }
 
