@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Notas</title>
+    <title>Portal de Notas - Escola</title>
     
-    <!-- Bibliotecas do Firebase -->
+    <!-- Bibliotecas do Firebase (V8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- Biblioteca para gerar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root { --primary: #1565c0; --primary-dark: #0d47a1; --secondary: #f0f4f8; --success: #2e7d32; --danger: #c62828; --text: #333; --border: #cfd8dc; }
@@ -41,23 +44,28 @@
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
         th { background-color: var(--secondary); color: var(--primary-dark); }
         .tag-matricula { background: #ffe0b2; color: #e65100; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; font-size: 1.1em;}
+        .tag-turma { background: #e3f2fd; color: #1565c0; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 0.9em;}
         
-        /* Layout do Boletim */
-        .card-periodo { background: var(--secondary); padding: 15px 20px; border-radius: 12px; margin-top: 20px; border-left: 5px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
-        .linha-nota { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ddd; }
+        /* Layout do Boletim e PDF */
+        #boletim-imprimir { padding: 20px; background: white; }
+        .disciplina-container { margin-bottom: 30px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+        .disciplina-header { background: var(--primary); color: white; padding: 10px 20px; margin: 0; font-size: 1.2rem; }
+        
+        .card-periodo { background: var(--secondary); padding: 15px 20px; margin: 15px; border-radius: 8px; border-left: 5px solid var(--primary); }
+        .linha-nota { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dotted #ccc; font-size: 0.95em; }
         .linha-nota:last-child { border: none; }
         .nota-destaque { font-size: 1.1em; font-weight: bold; }
-        .resultado-periodo { margin-top: 15px; padding: 10px; background: white; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
+        .resultado-periodo { margin-top: 10px; padding: 10px; background: white; border-radius: 6px; text-align: center; border: 1px solid var(--border); }
         
-        .aprovado { color: var(--success); }
-        .reprovado { color: var(--danger); }
+        .aprovado { color: var(--success); font-weight: bold;}
+        .reprovado { color: var(--danger); font-weight: bold;}
         .voltar { margin-bottom: 20px; cursor: pointer; color: var(--primary); font-weight: bold; text-decoration: underline; display: inline-block; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Gestão de Notas</h1>
+        <h1>Portal Escolar</h1>
     </header>
 
     <div class="container">
@@ -65,17 +73,14 @@
         <!-- TELA INICIAL -->
         <div id="tela-inicial">
             <h2>Bem-vindo ao Portal!</h2>
-            <p style="text-align: center; margin-bottom: 2rem;">Selecione como você deseja acessar o sistema:</p>
             <div class="grid-2">
                 <div class="box-selecao" onclick="mostrarTela('tela-login-prof')">
                     <div class="icone-grande">👨‍🏫</div>
                     <h3>Sou Professor</h3>
-                    <p>Acessar painel de gestão</p>
                 </div>
                 <div class="box-selecao" onclick="mostrarTela('tela-login-aluno')">
                     <div class="icone-grande">🎓</div>
                     <h3>Sou Aluno</h3>
-                    <p>Consultar meu boletim</p>
                 </div>
             </div>
         </div>
@@ -86,9 +91,9 @@
             <h2>Acesso do Professor</h2>
             <div class="form-group" style="max-width: 300px; margin: 0 auto;">
                 <label>Senha de Acesso</label>
-                <input type="password" id="senha-prof" placeholder="Digite a senha..." onkeypress="if(event.key === 'Enter') entrarProfessor()">
+                <input type="password" id="senha-prof" onkeypress="if(event.key === 'Enter') entrarProfessor()">
                 <button onclick="entrarProfessor()" style="margin-top: 15px;">Entrar</button>
-                <p id="erro-prof" class="reprovado hidden" style="text-align: center; font-size: 14px;">Senha incorreta.</p>
+                <p id="erro-prof" class="reprovado hidden" style="text-align: center;">Senha incorreta.</p>
             </div>
         </div>
 
@@ -98,28 +103,40 @@
             <h2>Acesso do Aluno</h2>
             <div class="form-group" style="max-width: 300px; margin: 0 auto;">
                 <label>Código de Matrícula</label>
-                <input type="text" id="matricula-aluno" placeholder="Ex: JO123" style="text-transform: uppercase;" onkeypress="if(event.key === 'Enter') entrarAluno()">
-                <button onclick="entrarAluno()" style="margin-top: 15px;">Ver Minhas Notas</button>
-                <p id="erro-aluno" class="reprovado hidden" style="text-align: center; font-size: 14px;">Matrícula não encontrada.</p>
+                <input type="text" id="matricula-aluno" style="text-transform: uppercase;" onkeypress="if(event.key === 'Enter') entrarAluno()">
+                <button onclick="entrarAluno()" style="margin-top: 15px;">Ver Meu Boletim</button>
+                <p id="erro-aluno" class="reprovado hidden" style="text-align: center;">Matrícula não encontrada.</p>
             </div>
         </div>
 
         <!-- PAINEL DO PROFESSOR (LISTA E CADASTRO) -->
         <div id="tela-painel-prof" class="hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h2>Painel de Controle</h2>
-                <button class="btn-outline btn-small" onclick="mostrarTela('tela-inicial')">Sair</button>
+                <div>
+                    <button class="btn-outline btn-small" onclick="abrirGerenciadorDisciplinas()">Gerenciar Disciplinas</button>
+                    <button class="btn-outline btn-small" onclick="mostrarTela('tela-inicial')">Sair</button>
+                </div>
             </div>
 
-            <!-- Formulário Simples para Gerar Matrícula -->
+            <!-- Formulário Cadastrar Aluno -->
             <div style="background: var(--secondary); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                 <h3 style="margin-top:0;">Cadastrar Novo Aluno</h3>
-                <div style="display: flex; gap: 10px; align-items: flex-end;">
-                    <div class="form-group" style="flex-grow: 1; margin: 0;">
-                        <label>Nome Completo do Aluno</label>
-                        <input type="text" id="novo-aluno-nome" placeholder="Digite o nome para gerar a matrícula...">
+                <div class="grid-2" style="align-items: flex-end;">
+                    <div class="form-group" style="margin: 0;">
+                        <label>Nome Completo</label>
+                        <input type="text" id="novo-aluno-nome">
                     </div>
-                    <button onclick="criarNovoAluno()" style="width: auto;">Cadastrar</button>
+                    <div class="form-group" style="margin: 0; display: flex; gap: 10px; align-items: flex-end;">
+                        <div style="flex-grow: 1;">
+                            <label>Série / Ano</label>
+                            <select id="novo-aluno-turma">
+                                <option value="8º ANO">8º ANO</option>
+                                <option value="9º ANO">9º ANO</option>
+                            </select>
+                        </div>
+                        <button onclick="criarNovoAluno()" style="width: auto;">Cadastrar</button>
+                    </div>
                 </div>
             </div>
 
@@ -130,58 +147,96 @@
                         <tr>
                             <th>Matrícula</th>
                             <th>Nome do Aluno</th>
-                            <th>Períodos Lançados</th>
+                            <th>Turma</th>
                             <th style="text-align: center;">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tabela-alunos">
-                        <tr><td colspan="4" style="text-align:center;">Carregando dados da nuvem...</td></tr>
+                        <tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- TELA DE LANÇAMENTO DE NOTAS POR PERÍODO -->
+        <!-- TELA DE GERENCIAMENTO DE DISCIPLINAS -->
+        <div id="tela-disciplinas" class="hidden">
+            <span class="voltar" onclick="mostrarTela('tela-painel-prof')">← Voltar</span>
+            <h2>Disciplinas por Turma</h2>
+            
+            <div style="background: var(--secondary); padding: 20px; border-radius: 8px;">
+                <div class="form-group">
+                    <label>Selecione a Turma:</label>
+                    <select id="select-turma-gerenciar" onchange="renderizarListaDisciplinas()">
+                        <option value="8º ANO">8º ANO</option>
+                        <option value="9º ANO">9º ANO</option>
+                    </select>
+                </div>
+                
+                <ul id="lista-disciplinas-atuais" style="padding-left: 20px; color: var(--primary-dark); font-weight: bold;">
+                    <!-- Preenchido via JS -->
+                </ul>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <input type="text" id="nova-disciplina" placeholder="Ex: Matemática, História...">
+                    <button onclick="adicionarDisciplina()" style="width: auto; white-space: nowrap;">Adicionar à Turma</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TELA DE LANÇAMENTO DE NOTAS POR MATÉRIA E PERÍODO -->
         <div id="tela-lancamento" class="hidden">
             <span class="voltar" onclick="mostrarTela('tela-painel-prof')">← Voltar à Lista</span>
             <h2 id="titulo-lancamento">Lançar Notas</h2>
             
             <input type="hidden" id="lanc-matricula">
+            <p style="text-align: center; color: #666; margin-top: -10px;">Turma: <strong id="lanc-turma"></strong></p>
             
             <div style="background: var(--secondary); padding: 20px; border-radius: 8px;">
-                <div class="form-group" style="max-width: 300px;">
-                    <label style="color: var(--primary-dark);">Selecione o Período:</label>
-                    <select id="select-periodo" onchange="carregarNotasDoPeriodo()">
-                        <option value="1">1º Período</option>
-                        <option value="2">2º Período</option>
-                        <option value="3">3º Período</option>
-                        <option value="4">4º Período</option>
-                    </select>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label style="color: var(--primary-dark);">Disciplina:</label>
+                        <select id="select-disciplina" onchange="carregarNotasDoFormulario()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label style="color: var(--primary-dark);">Período:</label>
+                        <select id="select-periodo" onchange="carregarNotasDoFormulario()">
+                            <option value="1">1º Período</option>
+                            <option value="2">2º Período</option>
+                            <option value="3">3º Período</option>
+                            <option value="4">4º Período</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="grid-2" style="margin-top: 20px;">
+                <div class="grid-2" style="margin-top: 10px;">
                     <div class="form-group"><label>Prova</label><input type="number" id="cad-prova" min="0" max="10"></div>
                     <div class="form-group"><label>Trabalho</label><input type="number" id="cad-trab" min="0" max="10"></div>
                     <div class="form-group"><label>Assiduidade</label><input type="number" id="cad-assid" min="0" max="10"></div>
                     <div class="form-group"><label>Nota 4 (Atividade)</label><input type="number" id="cad-n4" min="0" max="10"></div>
-                    <div class="form-group"><label>Recuperação Prova (Opcional)</label><input type="number" id="cad-recp" min="0" max="10"></div>
-                    <div class="form-group"><label>Recuperação Trab. (Opcional)</label><input type="number" id="cad-rect" min="0" max="10"></div>
+                    <div class="form-group"><label>Recup. Prova</label><input type="number" id="cad-recp" min="0" max="10"></div>
+                    <div class="form-group"><label>Recup. Trab.</label><input type="number" id="cad-rect" min="0" max="10"></div>
                 </div>
-                <button onclick="salvarNotasPeriodo()" style="margin-top: 10px;">Salvar Notas deste Período</button>
+                <button onclick="salvarNotasPeriodo()" style="margin-top: 10px;">Salvar Notas (Matéria e Período)</button>
             </div>
         </div>
 
-        <!-- PAINEL DO ALUNO -->
+        <!-- PAINEL DO ALUNO (VISÃO E PDF) -->
         <div id="tela-painel-aluno" class="hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>Meu Boletim Histórico</h2>
-                <button class="btn-outline btn-small" onclick="mostrarTela('tela-inicial')">Sair</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <span class="voltar" style="margin:0;" onclick="mostrarTela('tela-inicial')">← Sair</span>
+                <button class="btn-small" style="background-color: var(--success);" onclick="gerarPDF()">Baixar Resumo (PDF)</button>
             </div>
             
-            <h3 id="boletim-nome" style="color: var(--text); border-bottom: 2px solid var(--primary); padding-bottom: 10px;">Aluno: Nome Aqui</h3>
-            
-            <!-- Os cards dos períodos serão injetados aqui pelo JavaScript -->
-            <div id="container-boletins"></div>
+            <!-- ÁREA QUE SERÁ IMPRESSA NO PDF -->
+            <div id="boletim-imprimir">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0; color: var(--primary-dark);">Boletim de Desempenho Escolar</h2>
+                    <h3 id="boletim-nome" style="margin: 5px 0;">Aluno: Nome Aqui</h3>
+                    <p style="margin: 0; font-size: 1.1em; color: #555;">Turma: <strong id="boletim-turma"></strong></p>
+                </div>
+                
+                <div id="container-boletins"></div>
+            </div>
             
         </div>
 
@@ -199,14 +254,16 @@
             appId: "1:783977819933:web:3f948036c3e5efffb83bf4"
         };
 
-        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         // ==========================================
 
-        let listaAlunos = []; // Mantém os alunos carregados na memória
+        let listaAlunos = []; 
+        let configDisciplinas = {
+            "8º ANO": ["Língua Portuguesa", "Ensino Religioso"],
+            "9º ANO": ["Língua Portuguesa", "Ciências"]
+        }; // Fallback caso não tenha no banco
 
-        // Controle de Telas
         function mostrarTela(idTela) {
             document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
             document.getElementById(idTela).classList.remove('hidden');
@@ -215,16 +272,30 @@
         }
 
         // ==========================================
-        // ÁREA DO PROFESSOR
+        // ÁREA DO PROFESSOR (LOGIN E INICIALIZAÇÃO)
         // ==========================================
-        function entrarProfessor() {
+        async function entrarProfessor() {
             if(document.getElementById('senha-prof').value === 'prof123') {
                 document.getElementById('senha-prof').value = '';
                 mostrarTela('tela-painel-prof');
+                await carregarConfiguracoes();
                 atualizarTabela();
             } else {
                 document.getElementById('erro-prof').classList.remove('hidden');
             }
+        }
+
+        // Baixa do banco a lista de matérias do 8º e 9º ano
+        async function carregarConfiguracoes() {
+            try {
+                let doc = await db.collection("config").doc("disciplinas").get();
+                if(doc.exists) {
+                    configDisciplinas = doc.data();
+                } else {
+                    // Se não existir, salva o padrão no banco
+                    await db.collection("config").doc("disciplinas").set(configDisciplinas);
+                }
+            } catch (error) { console.log("Erro ao carregar config:", error); }
         }
 
         function gerarMatricula(nome) {
@@ -239,33 +310,32 @@
             return val === "" ? 0 : parseFloat(val);
         }
 
-        // 1. Cadastrar Apenas o Aluno
+        // ==========================================
+        // GERENCIAR ALUNOS E DISCIPLINAS
+        // ==========================================
         async function criarNovoAluno() {
             let nome = document.getElementById('novo-aluno-nome').value.trim();
+            let turma = document.getElementById('novo-aluno-turma').value;
             if(!nome) { alert("O nome é obrigatório!"); return; }
 
             let matricula = gerarMatricula(nome);
 
-            // Cria o objeto do aluno com uma lista de "periodos" vazia
             let novoAluno = {
                 nome: nome,
-                periodos: {} 
+                turma: turma,
+                notas: {} // Estrutura: { "Ciências": { "1": {prova: 5...} } }
             };
 
             try {
                 await db.collection("alunos").doc(matricula).set(novoAluno);
                 document.getElementById('novo-aluno-nome').value = '';
                 atualizarTabela();
-                alert(`Aluno cadastrado! Matrícula gerada: ${matricula}`);
-            } catch (error) {
-                alert("Erro ao cadastrar: " + error.message);
-            }
+                alert(`Aluno salvo! Turma: ${turma} | Matrícula: ${matricula}`);
+            } catch (error) { alert("Erro ao cadastrar: " + error.message); }
         }
 
-        // 2. Carregar Lista na Tabela
         async function atualizarTabela() {
             let tbody = document.getElementById('tabela-alunos');
-            
             try {
                 const querySnapshot = await db.collection("alunos").get();
                 tbody.innerHTML = '';
@@ -278,18 +348,14 @@
 
                 querySnapshot.forEach((doc) => {
                     let a = doc.data();
-                    a.matricula = doc.id; // Salva o ID dentro do objeto
+                    a.matricula = doc.id;
                     listaAlunos.push(a);
-                    
-                    // Identifica quais períodos já foram lançados
-                    let chavesPeriodos = a.periodos ? Object.keys(a.periodos) : [];
-                    let txtPeriodos = chavesPeriodos.length > 0 ? chavesPeriodos.map(p => p + 'º').join(', ') : 'Nenhum';
 
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td><span class="tag-matricula">${a.matricula}</span></td>
                         <td>${a.nome}</td>
-                        <td>${txtPeriodos}</td>
+                        <td><span class="tag-turma">${a.turma}</span></td>
                         <td style="text-align: center;">
                             <button class="btn-acao btn-outline" onclick="abrirLancamento('${a.matricula}')">Lançar Notas</button>
                             <button class="btn-acao btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="apagarAluno('${a.matricula}')">Excluir</button>
@@ -298,34 +364,95 @@
                     tbody.appendChild(tr);
                 });
             } catch (error) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Erro ao carregar dados. Verifique a internet/Firebase.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Erro ao carregar dados.</td></tr>';
             }
         }
 
-        // 3. Abrir Tela de Lançamento de Notas do Aluno
+        async function apagarAluno(matricula) {
+            if(confirm("Tem certeza que deseja apagar o aluno e todas as notas dele?")) {
+                await db.collection("alunos").doc(matricula).delete();
+                atualizarTabela();
+            }
+        }
+
+        // ==========================================
+        // ABA DE DISCIPLINAS
+        // ==========================================
+        function abrirGerenciadorDisciplinas() {
+            mostrarTela('tela-disciplinas');
+            renderizarListaDisciplinas();
+        }
+
+        function renderizarListaDisciplinas() {
+            let turmaSel = document.getElementById('select-turma-gerenciar').value;
+            let listaEl = document.getElementById('lista-disciplinas-atuais');
+            listaEl.innerHTML = '';
+            
+            let disciplinas = configDisciplinas[turmaSel] || [];
+            if(disciplinas.length === 0) {
+                listaEl.innerHTML = '<li>Nenhuma disciplina cadastrada.</li>';
+                return;
+            }
+            disciplinas.forEach(d => {
+                listaEl.innerHTML += `<li>${d}</li>`;
+            });
+        }
+
+        async function adicionarDisciplina() {
+            let turmaSel = document.getElementById('select-turma-gerenciar').value;
+            let novaDisp = document.getElementById('nova-disciplina').value.trim();
+            if(!novaDisp) return;
+
+            if(!configDisciplinas[turmaSel]) configDisciplinas[turmaSel] = [];
+            
+            // Impede duplicata
+            if(!configDisciplinas[turmaSel].includes(novaDisp)) {
+                configDisciplinas[turmaSel].push(novaDisp);
+                try {
+                    await db.collection("config").doc("disciplinas").set(configDisciplinas);
+                    document.getElementById('nova-disciplina').value = '';
+                    renderizarListaDisciplinas();
+                    alert("Disciplina adicionada com sucesso!");
+                } catch(e) { alert("Erro ao salvar disciplina."); }
+            } else {
+                alert("Esta disciplina já existe na turma.");
+            }
+        }
+
+        // ==========================================
+        // LANÇAMENTO DE NOTAS
+        // ==========================================
         function abrirLancamento(matricula) {
             let aluno = listaAlunos.find(a => a.matricula === matricula);
             
             document.getElementById('lanc-matricula').value = matricula;
             document.getElementById('titulo-lancamento').textContent = 'Notas - ' + aluno.nome;
-            document.getElementById('select-periodo').value = "1"; // Reseta pro 1
+            document.getElementById('lanc-turma').textContent = aluno.turma;
             
-            carregarNotasDoPeriodo(); // Verifica se já tem notas nesse período e preenche
+            // Popula o select de disciplinas baseado na turma do aluno
+            let selectDisc = document.getElementById('select-disciplina');
+            selectDisc.innerHTML = '';
+            let discTurma = configDisciplinas[aluno.turma] || [];
+            
+            discTurma.forEach(d => {
+                selectDisc.innerHTML += `<option value="${d}">${d}</option>`;
+            });
+
+            document.getElementById('select-periodo').value = "1";
+            carregarNotasDoFormulario(); 
             mostrarTela('tela-lancamento');
         }
 
-        // 4. Preenche os campos se o período selecionado já existir
-        function carregarNotasDoPeriodo() {
+        function carregarNotasDoFormulario() {
             let matricula = document.getElementById('lanc-matricula').value;
+            let disc = document.getElementById('select-disciplina').value;
             let periodo = document.getElementById('select-periodo').value;
             let aluno = listaAlunos.find(a => a.matricula === matricula);
             
-            // Limpa os campos por padrão
             document.querySelectorAll('#tela-lancamento input[type="number"]').forEach(i => i.value = '');
 
-            // Se o período já existe, preenche para edição
-            if(aluno && aluno.periodos && aluno.periodos[periodo]) {
-                let pData = aluno.periodos[periodo];
+            if(aluno && aluno.notas && aluno.notas[disc] && aluno.notas[disc][periodo]) {
+                let pData = aluno.notas[disc][periodo];
                 document.getElementById('cad-prova').value = pData.prova;
                 document.getElementById('cad-trab').value = pData.trabalho;
                 document.getElementById('cad-assid').value = pData.assiduidade;
@@ -335,17 +462,16 @@
             }
         }
 
-        // 5. Salvar Notas no Período Específico
         async function salvarNotasPeriodo() {
             let matricula = document.getElementById('lanc-matricula').value;
+            let disc = document.getElementById('select-disciplina').value;
             let periodo = document.getElementById('select-periodo').value;
             let aluno = listaAlunos.find(a => a.matricula === matricula);
 
-            // Garante que o objeto periodos exista
-            if(!aluno.periodos) aluno.periodos = {};
+            if(!aluno.notas) aluno.notas = {};
+            if(!aluno.notas[disc]) aluno.notas[disc] = {};
 
-            // Atualiza ou cria o período
-            aluno.periodos[periodo] = {
+            aluno.notas[disc][periodo] = {
                 prova: getNum('cad-prova'),
                 trabalho: getNum('cad-trab'),
                 assiduidade: getNum('cad-assid'),
@@ -355,44 +481,31 @@
             };
 
             try {
-                // Atualiza o aluno inteiro no banco de dados
                 await db.collection("alunos").doc(matricula).set(aluno);
-                alert(`Notas do ${periodo}º Período salvas com sucesso!`);
-                
-                // Volta para a tabela atualizada
+                alert(`Notas de ${disc} (${periodo}º Período) salvas!`);
                 mostrarTela('tela-painel-prof');
                 atualizarTabela();
-            } catch (error) {
-                alert("Erro ao salvar período: " + error.message);
-            }
-        }
-
-        async function apagarAluno(matricula) {
-            if(confirm("Tem certeza que deseja apagar o aluno e TODOS os períodos dele?")) {
-                await db.collection("alunos").doc(matricula).delete();
-                atualizarTabela();
-            }
+            } catch (error) { alert("Erro ao salvar: " + error.message); }
         }
 
         // ==========================================
-        // ÁREA DO ALUNO
+        // ÁREA DO ALUNO E GERAÇÃO DE PDF
         // ==========================================
         async function entrarAluno() {
             let inputMatricula = document.getElementById('matricula-aluno').value.trim().toUpperCase();
-            
             try {
-                const doc = await db.collection("alunos").doc(inputMatricula).get();
+                // Antes de ler o aluno, garante que as configurações de matéria estão carregadas no sistema
+                if(Object.keys(configDisciplinas).length === 2) await carregarConfiguracoes();
                 
+                const doc = await db.collection("alunos").doc(inputMatricula).get();
                 if (doc.exists) {
                     document.getElementById('matricula-aluno').value = '';
-                    renderizarBoletimHistorico(doc.data());
+                    renderizarBoletimResumo(doc.data());
                     mostrarTela('tela-painel-aluno');
                 } else {
                     document.getElementById('erro-aluno').classList.remove('hidden');
                 }
-            } catch (error) {
-                alert("Erro ao conectar com o servidor.");
-            }
+            } catch (error) { alert("Erro ao conectar com o servidor."); }
         }
 
         function calcularMediaPeriodo(p) {
@@ -401,49 +514,71 @@
             return ((notaProvaValida + notaTrabValida + p.assiduidade + p.nota4) / 4).toFixed(1);
         }
 
-        function renderizarBoletimHistorico(aluno) {
-            document.getElementById('boletim-nome').textContent = "Aluno: " + aluno.nome;
+        function renderizarBoletimResumo(aluno) {
+            document.getElementById('boletim-nome').textContent = aluno.nome;
+            document.getElementById('boletim-turma').textContent = aluno.turma;
+            
             let container = document.getElementById('container-boletins');
             container.innerHTML = '';
 
-            let periodos = aluno.periodos || {};
-            let encontrouPeriodos = false;
+            let materiasDaTurma = configDisciplinas[aluno.turma] || [];
+            let notas = aluno.notas || {};
 
-            // Faz um loop de 1 a 4 para garantir a ordem correta
-            for(let i = 1; i <= 4; i++) {
-                if(periodos[i]) {
-                    encontrouPeriodos = true;
-                    let p = periodos[i];
-                    let media = calcularMediaPeriodo(p);
-                    let sit = media >= 7 ? 'APROVADO' : 'REPROVADO';
-                    let sitClass = media >= 7 ? 'aprovado' : 'reprovado';
+            materiasDaTurma.forEach(disciplina => {
+                let htmlDisciplina = `<div class="disciplina-container">
+                                        <h3 class="disciplina-header">${disciplina}</h3>`;
+                
+                let temNotasNaMateria = false;
+                
+                for(let i = 1; i <= 4; i++) {
+                    if(notas[disciplina] && notas[disciplina][i]) {
+                        temNotasNaMateria = true;
+                        let p = notas[disciplina][i];
+                        let media = calcularMediaPeriodo(p);
+                        let sitClass = media >= 7 ? 'aprovado' : 'reprovado';
+                        let sitTexto = media >= 7 ? 'Aprovado' : 'Reprovado';
 
-                    let txtRecP = p.recP > 0 ? p.recP.toFixed(1) : '-';
-                    let txtRecT = p.recT > 0 ? p.recT.toFixed(1) : '-';
-
-                    let cardHTML = `
-                        <div class="card-periodo">
-                            <h3 style="margin-top:0; color: var(--primary-dark);">Rendimento do ${i}º Período</h3>
-                            
-                            <div class="linha-nota"><span>Prova Oficial:</span> <span class="nota-destaque">${p.prova.toFixed(1)}</span></div>
-                            <div class="linha-nota"><span>Trabalho Oficial:</span> <span class="nota-destaque">${p.trabalho.toFixed(1)}</span></div>
-                            <div class="linha-nota"><span>Assiduidade:</span> <span class="nota-destaque">${p.assiduidade.toFixed(1)}</span></div>
-                            <div class="linha-nota"><span>Atividade (Nota 4):</span> <span class="nota-destaque">${p.nota4.toFixed(1)}</span></div>
-                            <div class="linha-nota" style="color: #666;"><span>Recuperação da Prova:</span> <span>${txtRecP}</span></div>
-                            <div class="linha-nota" style="color: #666;"><span>Recuperação do Trabalho:</span> <span>${txtRecT}</span></div>
-                            
-                            <div class="resultado-periodo">
-                                <span style="font-size: 1.1rem;">Média do Período: <strong class="${sitClass}" style="font-size: 1.5rem; margin: 0 10px;">${media}</strong> | Situação: <span class="${sitClass}">${sit}</span></span>
+                        htmlDisciplina += `
+                            <div class="card-periodo">
+                                <h4 style="margin: 0 0 10px 0; color: #555;">${i}º Período</h4>
+                                <div class="linha-nota"><span>Prova Oficial:</span> <span>${p.prova.toFixed(1)}</span></div>
+                                <div class="linha-nota"><span>Trabalho Oficial:</span> <span>${p.trabalho.toFixed(1)}</span></div>
+                                <div class="linha-nota"><span>Assiduidade:</span> <span>${p.assiduidade.toFixed(1)}</span></div>
+                                <div class="linha-nota"><span>Nota 4:</span> <span>${p.nota4.toFixed(1)}</span></div>
+                                
+                                <div class="resultado-periodo">
+                                    <span>Média: <strong class="${sitClass}">${media}</strong> - ${sitTexto}</span>
+                                </div>
                             </div>
-                        </div>
-                    `;
-                    container.innerHTML += cardHTML;
+                        `;
+                    }
                 }
-            }
 
-            if(!encontrouPeriodos) {
-                container.innerHTML = '<div class="card-periodo"><p style="text-align:center;">Nenhum período foi lançado para este aluno ainda.</p></div>';
-            }
+                if(!temNotasNaMateria) {
+                    htmlDisciplina += `<p style="padding: 15px; text-align: center; color: #777;">Nenhuma nota lançada nesta disciplina ainda.</p>`;
+                }
+
+                htmlDisciplina += `</div>`;
+                container.innerHTML += htmlDisciplina;
+            });
+        }
+
+        // Função para transformar a visualização em PDF
+        function gerarPDF() {
+            const elemento = document.getElementById('boletim-imprimir');
+            const nomeAluno = document.getElementById('boletim-nome').textContent;
+            
+            const opcoes = {
+                margin:       10,
+                filename:     `Boletim_${nomeAluno}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Avisa o usuário e gera
+            alert("Preparando o PDF, aguarde alguns segundos...");
+            html2pdf().set(opcoes).from(elemento).save();
         }
     </script>
 </body>
