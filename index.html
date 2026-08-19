@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Notas </title>
+    <title>Portal de Notas - Geografia</title>
     
     <!-- Bibliotecas do Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -16,30 +16,39 @@
         header { background-color: var(--primary); color: white; padding: 1.5rem; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .container { max-width: 900px; margin: 2rem auto; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); width: 95%; flex-grow: 1; }
         h2, h3 { color: var(--primary-dark); text-align: center; }
+        
         button { background-color: var(--primary); color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.3s; width: 100%; }
         button:hover { background-color: var(--primary-dark); }
         .btn-outline { background-color: transparent; color: var(--primary); border: 2px solid var(--primary); }
         .btn-outline:hover { background-color: var(--secondary); color: var(--primary-dark); }
         .btn-small { padding: 6px 12px; font-size: 14px; width: auto; }
+        .btn-acao { padding: 6px 12px; font-size: 13px; margin: 2px; }
+
         .hidden { display: none !important; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
         .box-selecao { text-align: center; padding: 2rem; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.3s; }
         .box-selecao:hover { border-color: var(--primary); background: var(--secondary); }
         .box-selecao h3 { margin: 10px 0 0 0; font-size: 1.5rem; }
         .icone-grande { font-size: 3rem; }
+        
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #555; }
-        input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 16px; }
-        input:focus { outline: none; border-color: var(--primary); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 16px; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
         th { background-color: var(--secondary); color: var(--primary-dark); }
         .tag-matricula { background: #ffe0b2; color: #e65100; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; font-size: 1.1em;}
-        .card-notas { background: var(--secondary); padding: 20px; border-radius: 12px; margin-top: 20px; }
-        .linha-nota { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ddd; }
+        
+        /* Layout do Boletim */
+        .card-periodo { background: var(--secondary); padding: 15px 20px; border-radius: 12px; margin-top: 20px; border-left: 5px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
+        .linha-nota { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ddd; }
         .linha-nota:last-child { border: none; }
-        .nota-destaque { font-size: 1.2em; font-weight: bold; }
-        .resultado-final { margin-top: 20px; padding: 20px; background: white; border-radius: 8px; text-align: center; border: 2px solid var(--border); }
+        .nota-destaque { font-size: 1.1em; font-weight: bold; }
+        .resultado-periodo { margin-top: 15px; padding: 10px; background: white; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
+        
         .aprovado { color: var(--success); }
         .reprovado { color: var(--danger); }
         .voltar { margin-bottom: 20px; cursor: pointer; color: var(--primary); font-weight: bold; text-decoration: underline; display: inline-block; }
@@ -95,28 +104,23 @@
             </div>
         </div>
 
-        <!-- PAINEL DO PROFESSOR -->
+        <!-- PAINEL DO PROFESSOR (LISTA E CADASTRO) -->
         <div id="tela-painel-prof" class="hidden">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2>Painel de Controle</h2>
                 <button class="btn-outline btn-small" onclick="mostrarTela('tela-inicial')">Sair</button>
             </div>
 
+            <!-- Formulário Simples para Gerar Matrícula -->
             <div style="background: var(--secondary); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <h3 style="margin-top:0;">Lançar Novo Aluno</h3>
-                <div class="grid-2">
-                    <div class="form-group" style="grid-column: span 2;">
+                <h3 style="margin-top:0;">Cadastrar Novo Aluno</h3>
+                <div style="display: flex; gap: 10px; align-items: flex-end;">
+                    <div class="form-group" style="flex-grow: 1; margin: 0;">
                         <label>Nome Completo do Aluno</label>
-                        <input type="text" id="cad-nome">
+                        <input type="text" id="novo-aluno-nome" placeholder="Digite o nome para gerar a matrícula...">
                     </div>
-                    <div class="form-group"><label>Prova</label><input type="number" id="cad-prova" min="0" max="10"></div>
-                    <div class="form-group"><label>Trabalho</label><input type="number" id="cad-trab" min="0" max="10"></div>
-                    <div class="form-group"><label>Assiduidade</label><input type="number" id="cad-assid" min="0" max="10"></div>
-                    <div class="form-group"><label>Nota 4 (Atividade)</label><input type="number" id="cad-n4" min="0" max="10"></div>
-                    <div class="form-group"><label>Recuperação Prova</label><input type="number" id="cad-recp" min="0" max="10"></div>
-                    <div class="form-group"><label>Recuperação Trabalho</label><input type="number" id="cad-rect" min="0" max="10"></div>
+                    <button onclick="criarNovoAluno()" style="width: auto;">Cadastrar</button>
                 </div>
-                <button onclick="salvarAluno()">Gravar Aluno no Banco de Dados</button>
             </div>
 
             <h3>Alunos Cadastrados</h3>
@@ -126,48 +130,66 @@
                         <tr>
                             <th>Matrícula</th>
                             <th>Nome do Aluno</th>
-                            <th>Média</th>
-                            <th>Situação</th>
-                            <th>Ação</th>
+                            <th>Períodos Lançados</th>
+                            <th style="text-align: center;">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tabela-alunos">
-                        <tr><td colspan="5" style="text-align:center;">Carregando dados da nuvem...</td></tr>
+                        <tr><td colspan="4" style="text-align:center;">Carregando dados da nuvem...</td></tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- TELA DE LANÇAMENTO DE NOTAS POR PERÍODO -->
+        <div id="tela-lancamento" class="hidden">
+            <span class="voltar" onclick="mostrarTela('tela-painel-prof')">← Voltar à Lista</span>
+            <h2 id="titulo-lancamento">Lançar Notas</h2>
+            
+            <input type="hidden" id="lanc-matricula">
+            
+            <div style="background: var(--secondary); padding: 20px; border-radius: 8px;">
+                <div class="form-group" style="max-width: 300px;">
+                    <label style="color: var(--primary-dark);">Selecione o Período:</label>
+                    <select id="select-periodo" onchange="carregarNotasDoPeriodo()">
+                        <option value="1">1º Período</option>
+                        <option value="2">2º Período</option>
+                        <option value="3">3º Período</option>
+                        <option value="4">4º Período</option>
+                    </select>
+                </div>
+
+                <div class="grid-2" style="margin-top: 20px;">
+                    <div class="form-group"><label>Prova</label><input type="number" id="cad-prova" min="0" max="10"></div>
+                    <div class="form-group"><label>Trabalho</label><input type="number" id="cad-trab" min="0" max="10"></div>
+                    <div class="form-group"><label>Assiduidade</label><input type="number" id="cad-assid" min="0" max="10"></div>
+                    <div class="form-group"><label>Nota 4 (Atividade)</label><input type="number" id="cad-n4" min="0" max="10"></div>
+                    <div class="form-group"><label>Recuperação Prova (Opcional)</label><input type="number" id="cad-recp" min="0" max="10"></div>
+                    <div class="form-group"><label>Recuperação Trab. (Opcional)</label><input type="number" id="cad-rect" min="0" max="10"></div>
+                </div>
+                <button onclick="salvarNotasPeriodo()" style="margin-top: 10px;">Salvar Notas deste Período</button>
             </div>
         </div>
 
         <!-- PAINEL DO ALUNO -->
         <div id="tela-painel-aluno" class="hidden">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>Meu Boletim</h2>
+                <h2>Meu Boletim Histórico</h2>
                 <button class="btn-outline btn-small" onclick="mostrarTela('tela-inicial')">Sair</button>
             </div>
             
-            <h3 id="boletim-nome" style="color: var(--text);">Aluno: Nome Aqui</h3>
+            <h3 id="boletim-nome" style="color: var(--text); border-bottom: 2px solid var(--primary); padding-bottom: 10px;">Aluno: Nome Aqui</h3>
             
-            <div class="card-notas">
-                <div class="linha-nota"><span>Prova Oficial:</span> <span id="bol-prova" class="nota-destaque"></span></div>
-                <div class="linha-nota"><span>Trabalho Oficial:</span> <span id="bol-trab" class="nota-destaque"></span></div>
-                <div class="linha-nota"><span>Assiduidade:</span> <span id="bol-assid" class="nota-destaque"></span></div>
-                <div class="linha-nota"><span>Atividade (Nota 4):</span> <span id="bol-n4" class="nota-destaque"></span></div>
-                <div class="linha-nota" style="color: #666;"><span>Recuperação da Prova:</span> <span id="bol-recp"></span></div>
-                <div class="linha-nota" style="color: #666;"><span>Recuperação do Trabalho:</span> <span id="bol-rect"></span></div>
-            </div>
-
-            <div class="resultado-final">
-                <p style="font-size: 1.2rem; margin: 0;">Média Final Calculada</p>
-                <h1 id="bol-media" style="font-size: 3rem; margin: 10px 0;"></h1>
-                <h2 id="bol-situacao" style="margin: 0;"></h2>
-            </div>
+            <!-- Os cards dos períodos serão injetados aqui pelo JavaScript -->
+            <div id="container-boletins"></div>
+            
         </div>
 
     </div>
 
     <script>
         // ==========================================
-        // Configuração exata para o Firebase Versão 8 (Compatível)
+        // Configuração exata para o Firebase Versão 8
         const firebaseConfig = {
             apiKey: "AIzaSyDFVE6MvfuULMDZ7k1uX6qQMRMrgwivJi8",
             authDomain: "gestao-notas-b00f2.firebaseapp.com",
@@ -182,6 +204,8 @@
         const db = firebase.firestore();
         // ==========================================
 
+        let listaAlunos = []; // Mantém os alunos carregados na memória
+
         // Controle de Telas
         function mostrarTela(idTela) {
             document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
@@ -190,7 +214,9 @@
             document.getElementById('erro-aluno').classList.add('hidden');
         }
 
-        // Professor
+        // ==========================================
+        // ÁREA DO PROFESSOR
+        // ==========================================
         function entrarProfessor() {
             if(document.getElementById('senha-prof').value === 'prof123') {
                 document.getElementById('senha-prof').value = '';
@@ -213,21 +239,113 @@
             return val === "" ? 0 : parseFloat(val);
         }
 
-        function calcularMedia(aluno) {
-            let notaProvaValida = Math.max(aluno.prova, aluno.recP);
-            let notaTrabValida = Math.max(aluno.trabalho, aluno.recT);
-            return ((notaProvaValida + notaTrabValida + aluno.assiduidade + aluno.nota4) / 4).toFixed(1);
-        }
-
-        // SALVA NO BANCO DO FIREBASE
-        async function salvarAluno() {
-            let nome = document.getElementById('cad-nome').value.trim();
+        // 1. Cadastrar Apenas o Aluno
+        async function criarNovoAluno() {
+            let nome = document.getElementById('novo-aluno-nome').value.trim();
             if(!nome) { alert("O nome é obrigatório!"); return; }
 
             let matricula = gerarMatricula(nome);
 
+            // Cria o objeto do aluno com uma lista de "periodos" vazia
             let novoAluno = {
                 nome: nome,
+                periodos: {} 
+            };
+
+            try {
+                await db.collection("alunos").doc(matricula).set(novoAluno);
+                document.getElementById('novo-aluno-nome').value = '';
+                atualizarTabela();
+                alert(`Aluno cadastrado! Matrícula gerada: ${matricula}`);
+            } catch (error) {
+                alert("Erro ao cadastrar: " + error.message);
+            }
+        }
+
+        // 2. Carregar Lista na Tabela
+        async function atualizarTabela() {
+            let tbody = document.getElementById('tabela-alunos');
+            
+            try {
+                const querySnapshot = await db.collection("alunos").get();
+                tbody.innerHTML = '';
+                listaAlunos = []; 
+                
+                if(querySnapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum aluno cadastrado.</td></tr>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    let a = doc.data();
+                    a.matricula = doc.id; // Salva o ID dentro do objeto
+                    listaAlunos.push(a);
+                    
+                    // Identifica quais períodos já foram lançados
+                    let chavesPeriodos = a.periodos ? Object.keys(a.periodos) : [];
+                    let txtPeriodos = chavesPeriodos.length > 0 ? chavesPeriodos.map(p => p + 'º').join(', ') : 'Nenhum';
+
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><span class="tag-matricula">${a.matricula}</span></td>
+                        <td>${a.nome}</td>
+                        <td>${txtPeriodos}</td>
+                        <td style="text-align: center;">
+                            <button class="btn-acao btn-outline" onclick="abrirLancamento('${a.matricula}')">Lançar Notas</button>
+                            <button class="btn-acao btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="apagarAluno('${a.matricula}')">Excluir</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Erro ao carregar dados. Verifique a internet/Firebase.</td></tr>';
+            }
+        }
+
+        // 3. Abrir Tela de Lançamento de Notas do Aluno
+        function abrirLancamento(matricula) {
+            let aluno = listaAlunos.find(a => a.matricula === matricula);
+            
+            document.getElementById('lanc-matricula').value = matricula;
+            document.getElementById('titulo-lancamento').textContent = 'Notas - ' + aluno.nome;
+            document.getElementById('select-periodo').value = "1"; // Reseta pro 1
+            
+            carregarNotasDoPeriodo(); // Verifica se já tem notas nesse período e preenche
+            mostrarTela('tela-lancamento');
+        }
+
+        // 4. Preenche os campos se o período selecionado já existir
+        function carregarNotasDoPeriodo() {
+            let matricula = document.getElementById('lanc-matricula').value;
+            let periodo = document.getElementById('select-periodo').value;
+            let aluno = listaAlunos.find(a => a.matricula === matricula);
+            
+            // Limpa os campos por padrão
+            document.querySelectorAll('#tela-lancamento input[type="number"]').forEach(i => i.value = '');
+
+            // Se o período já existe, preenche para edição
+            if(aluno && aluno.periodos && aluno.periodos[periodo]) {
+                let pData = aluno.periodos[periodo];
+                document.getElementById('cad-prova').value = pData.prova;
+                document.getElementById('cad-trab').value = pData.trabalho;
+                document.getElementById('cad-assid').value = pData.assiduidade;
+                document.getElementById('cad-n4').value = pData.nota4;
+                if(pData.recP) document.getElementById('cad-recp').value = pData.recP;
+                if(pData.recT) document.getElementById('cad-rect').value = pData.recT;
+            }
+        }
+
+        // 5. Salvar Notas no Período Específico
+        async function salvarNotasPeriodo() {
+            let matricula = document.getElementById('lanc-matricula').value;
+            let periodo = document.getElementById('select-periodo').value;
+            let aluno = listaAlunos.find(a => a.matricula === matricula);
+
+            // Garante que o objeto periodos exista
+            if(!aluno.periodos) aluno.periodos = {};
+
+            // Atualiza ou cria o período
+            aluno.periodos[periodo] = {
                 prova: getNum('cad-prova'),
                 trabalho: getNum('cad-trab'),
                 assiduidade: getNum('cad-assid'),
@@ -237,59 +355,28 @@
             };
 
             try {
-                // Comando que grava os dados na nuvem
-                await db.collection("alunos").doc(matricula).set(novoAluno);
+                // Atualiza o aluno inteiro no banco de dados
+                await db.collection("alunos").doc(matricula).set(aluno);
+                alert(`Notas do ${periodo}º Período salvas com sucesso!`);
                 
-                document.querySelectorAll('input[type="number"], input[type="text"]').forEach(i => i.value = '');
+                // Volta para a tabela atualizada
+                mostrarTela('tela-painel-prof');
                 atualizarTabela();
-                alert(`Aluno salvo na nuvem com sucesso! A matrícula gerada é: ${matricula}`);
             } catch (error) {
-                alert("Erro ao salvar: " + error.message);
-            }
-        }
-
-        // LÊ OS DADOS DO FIREBASE
-        async function atualizarTabela() {
-            let tbody = document.getElementById('tabela-alunos');
-            
-            try {
-                const querySnapshot = await db.collection("alunos").get();
-                tbody.innerHTML = '';
-                
-                if(querySnapshot.empty) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum aluno cadastrado.</td></tr>';
-                    return;
-                }
-
-                querySnapshot.forEach((doc) => {
-                    let a = doc.data();
-                    let matricula = doc.id;
-                    let media = calcularMedia(a);
-                    let sit = media >= 7 ? '<span class="aprovado">Aprovado</span>' : '<span class="reprovado">Reprovado</span>';
-                    
-                    let tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><span class="tag-matricula">${matricula}</span></td>
-                        <td>${a.nome}</td>
-                        <td><strong>${media}</strong></td>
-                        <td>${sit}</td>
-                        <td><button class="btn-small btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="apagarAluno('${matricula}')">Excluir</button></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (error) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Erro ao carregar dados. Verifique o Firebase (Regras de Segurança).</td></tr>';
+                alert("Erro ao salvar período: " + error.message);
             }
         }
 
         async function apagarAluno(matricula) {
-            if(confirm("Tem certeza que deseja apagar as notas deste aluno definitivamente da nuvem?")) {
+            if(confirm("Tem certeza que deseja apagar o aluno e TODOS os períodos dele?")) {
                 await db.collection("alunos").doc(matricula).delete();
                 atualizarTabela();
             }
         }
 
-        // BUSCA O ALUNO NO FIREBASE PELO LOGIN
+        // ==========================================
+        // ÁREA DO ALUNO
+        // ==========================================
         async function entrarAluno() {
             let inputMatricula = document.getElementById('matricula-aluno').value.trim().toUpperCase();
             
@@ -298,7 +385,7 @@
                 
                 if (doc.exists) {
                     document.getElementById('matricula-aluno').value = '';
-                    preencherBoletim(doc.data());
+                    renderizarBoletimHistorico(doc.data());
                     mostrarTela('tela-painel-aluno');
                 } else {
                     document.getElementById('erro-aluno').classList.remove('hidden');
@@ -308,27 +395,54 @@
             }
         }
 
-        function preencherBoletim(a) {
-            document.getElementById('boletim-nome').textContent = a.nome;
-            document.getElementById('bol-prova').textContent = a.prova.toFixed(1);
-            document.getElementById('bol-trab').textContent = a.trabalho.toFixed(1);
-            document.getElementById('bol-assid').textContent = a.assiduidade.toFixed(1);
-            document.getElementById('bol-n4').textContent = a.nota4.toFixed(1);
-            document.getElementById('bol-recp').textContent = a.recP > 0 ? a.recP.toFixed(1) : '-';
-            document.getElementById('bol-rect').textContent = a.recT > 0 ? a.recT.toFixed(1) : '-';
+        function calcularMediaPeriodo(p) {
+            let notaProvaValida = Math.max(p.prova, p.recP || 0);
+            let notaTrabValida = Math.max(p.trabalho, p.recT || 0);
+            return ((notaProvaValida + notaTrabValida + p.assiduidade + p.nota4) / 4).toFixed(1);
+        }
 
-            let mediaFinal = calcularMedia(a);
-            document.getElementById('bol-media').textContent = mediaFinal;
+        function renderizarBoletimHistorico(aluno) {
+            document.getElementById('boletim-nome').textContent = "Aluno: " + aluno.nome;
+            let container = document.getElementById('container-boletins');
+            container.innerHTML = '';
 
-            let sitEl = document.getElementById('bol-situacao');
-            if(mediaFinal >= 7) {
-                sitEl.textContent = "Situação: APROVADO";
-                sitEl.className = "aprovado";
-                document.getElementById('bol-media').className = "aprovado";
-            } else {
-                sitEl.textContent = "Situação: REPROVADO";
-                sitEl.className = "reprovado";
-                document.getElementById('bol-media').className = "reprovado";
+            let periodos = aluno.periodos || {};
+            let encontrouPeriodos = false;
+
+            // Faz um loop de 1 a 4 para garantir a ordem correta
+            for(let i = 1; i <= 4; i++) {
+                if(periodos[i]) {
+                    encontrouPeriodos = true;
+                    let p = periodos[i];
+                    let media = calcularMediaPeriodo(p);
+                    let sit = media >= 7 ? 'APROVADO' : 'REPROVADO';
+                    let sitClass = media >= 7 ? 'aprovado' : 'reprovado';
+
+                    let txtRecP = p.recP > 0 ? p.recP.toFixed(1) : '-';
+                    let txtRecT = p.recT > 0 ? p.recT.toFixed(1) : '-';
+
+                    let cardHTML = `
+                        <div class="card-periodo">
+                            <h3 style="margin-top:0; color: var(--primary-dark);">Rendimento do ${i}º Período</h3>
+                            
+                            <div class="linha-nota"><span>Prova Oficial:</span> <span class="nota-destaque">${p.prova.toFixed(1)}</span></div>
+                            <div class="linha-nota"><span>Trabalho Oficial:</span> <span class="nota-destaque">${p.trabalho.toFixed(1)}</span></div>
+                            <div class="linha-nota"><span>Assiduidade:</span> <span class="nota-destaque">${p.assiduidade.toFixed(1)}</span></div>
+                            <div class="linha-nota"><span>Atividade (Nota 4):</span> <span class="nota-destaque">${p.nota4.toFixed(1)}</span></div>
+                            <div class="linha-nota" style="color: #666;"><span>Recuperação da Prova:</span> <span>${txtRecP}</span></div>
+                            <div class="linha-nota" style="color: #666;"><span>Recuperação do Trabalho:</span> <span>${txtRecT}</span></div>
+                            
+                            <div class="resultado-periodo">
+                                <span style="font-size: 1.1rem;">Média do Período: <strong class="${sitClass}" style="font-size: 1.5rem; margin: 0 10px;">${media}</strong> | Situação: <span class="${sitClass}">${sit}</span></span>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += cardHTML;
+                }
+            }
+
+            if(!encontrouPeriodos) {
+                container.innerHTML = '<div class="card-periodo"><p style="text-align:center;">Nenhum período foi lançado para este aluno ainda.</p></div>';
             }
         }
     </script>
