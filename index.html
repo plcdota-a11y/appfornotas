@@ -12,8 +12,16 @@
     <!-- Biblioteca para gerar PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+    <!-- Vercel Web Analytics & Speed Insights (Vanilla HTML) -->
+    <script>
+        window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+        window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+
     <style>
-        :root { --primary: #1565c0; --primary-dark: #0d47a1; --secondary: #f0f4f8; --success: #2e7d32; --danger: #c62828; --text: #333; --border: #cfd8dc; }
+        :root { --primary: #1565c0; --primary-dark: #0d47a1; --secondary: #f0f4f8; --success: #2e7d32; --danger: #c62828; --warning: #f57c00; --text: #333; --border: #cfd8dc; }
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #e3f2fd; color: var(--text); margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
         header { background-color: var(--primary); color: white; padding: 1.5rem; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -183,7 +191,7 @@
             </div>
         </div>
 
-        <!-- TELA DE LANÇAMENTO DE NOTAS POR MATÉRIA E PERÍODO -->
+        <!-- TELA DE LANÇAMENTO DE NOTAS -->
         <div id="tela-lancamento" class="hidden">
             <span class="voltar" onclick="mostrarTela('tela-painel-prof')">← Voltar à Lista</span>
             <h2 id="titulo-lancamento">Lançar Notas</h2>
@@ -227,7 +235,6 @@
                 <button class="btn-small" style="background-color: var(--success);" onclick="gerarPDF()">Baixar Resumo (PDF)</button>
             </div>
             
-            <!-- ÁREA QUE SERÁ IMPRESSA NO PDF -->
             <div id="boletim-imprimir">
                 <div style="text-align: center; margin-bottom: 20px;">
                     <h2 style="margin: 0; color: var(--primary-dark);">Boletim de Desempenho Escolar</h2>
@@ -237,14 +244,13 @@
                 
                 <div id="container-boletins"></div>
             </div>
-            
         </div>
 
     </div>
 
     <script>
         // ==========================================
-        // Configuração exata para o Firebase Versão 8
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyDFVE6MvfuULMDZ7k1uX6qQMRMrgwivJi8",
             authDomain: "gestao-notas-b00f2.firebaseapp.com",
@@ -271,9 +277,6 @@
             document.getElementById('erro-aluno').classList.add('hidden');
         }
 
-        // ==========================================
-        // ÁREA DO PROFESSOR (LOGIN E INICIALIZAÇÃO)
-        // ==========================================
         async function entrarProfessor() {
             if(document.getElementById('senha-prof').value === 'prof123') {
                 document.getElementById('senha-prof').value = '';
@@ -309,7 +312,7 @@
         }
 
         // ==========================================
-        // GERENCIAR ALUNOS E DISCIPLINAS
+        // ALUNOS: CADASTRAR, EDITAR, EXCLUIR
         // ==========================================
         async function criarNovoAluno() {
             let nome = document.getElementById('novo-aluno-nome').value.trim();
@@ -317,12 +320,7 @@
             if(!nome) { alert("O nome é obrigatório!"); return; }
 
             let matricula = gerarMatricula(nome);
-
-            let novoAluno = {
-                nome: nome,
-                turma: turma,
-                notas: {} 
-            };
+            let novoAluno = { nome: nome, turma: turma, notas: {} };
 
             try {
                 await db.collection("alunos").doc(matricula).set(novoAluno);
@@ -330,6 +328,29 @@
                 atualizarTabela();
                 alert(`Aluno salvo! Turma: ${turma} | Matrícula: ${matricula}`);
             } catch (error) { alert("Erro ao cadastrar: " + error.message); }
+        }
+
+        // Função Nova: Editar Nome do Aluno
+        async function editarAluno(matricula) {
+            let aluno = listaAlunos.find(a => a.matricula === matricula);
+            if(!aluno) return;
+
+            let novoNome = prompt("Edite o nome do aluno:", aluno.nome);
+            
+            if(novoNome && novoNome.trim() !== "" && novoNome !== aluno.nome) {
+                try {
+                    await db.collection("alunos").doc(matricula).update({ nome: novoNome.trim() });
+                    atualizarTabela();
+                    alert("Nome atualizado com sucesso!");
+                } catch(e) { alert("Erro ao editar o nome."); }
+            }
+        }
+
+        async function apagarAluno(matricula) {
+            if(confirm("Tem certeza que deseja apagar o aluno e todas as notas dele?")) {
+                await db.collection("alunos").doc(matricula).delete();
+                atualizarTabela();
+            }
         }
 
         async function atualizarTabela() {
@@ -354,8 +375,9 @@
                         <td><span class="tag-matricula">${a.matricula}</span></td>
                         <td>${a.nome}</td>
                         <td><span class="tag-turma">${a.turma}</span></td>
-                        <td style="text-align: center;">
-                            <button class="btn-acao btn-outline" onclick="abrirLancamento('${a.matricula}')">Lançar Notas</button>
+                        <td style="text-align: center; white-space: nowrap;">
+                            <button class="btn-acao btn-outline" style="color: var(--primary-dark); border-color: var(--primary-dark);" onclick="abrirLancamento('${a.matricula}')">Notas</button>
+                            <button class="btn-acao btn-outline" style="color: var(--warning); border-color: var(--warning);" onclick="editarAluno('${a.matricula}')">Editar</button>
                             <button class="btn-acao btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="apagarAluno('${a.matricula}')">Excluir</button>
                         </td>
                     `;
@@ -366,15 +388,8 @@
             }
         }
 
-        async function apagarAluno(matricula) {
-            if(confirm("Tem certeza que deseja apagar o aluno e todas as notas dele?")) {
-                await db.collection("alunos").doc(matricula).delete();
-                atualizarTabela();
-            }
-        }
-
         // ==========================================
-        // ABA DE DISCIPLINAS (NOVO CÓDIGO INCLUÍDO)
+        // DISCIPLINAS: ADICIONAR, EDITAR, EXCLUIR
         // ==========================================
         function abrirGerenciadorDisciplinas() {
             mostrarTela('tela-disciplinas');
@@ -397,7 +412,10 @@
                 listaEl.innerHTML += `
                     <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
                         <span>${d}</span>
-                        <button class="btn-acao btn-outline" style="color: var(--danger); border-color: var(--danger); width: auto;" onclick="removerDisciplina('${turmaSel}', '${d}')">Excluir</button>
+                        <div>
+                            <button class="btn-acao btn-outline" style="color: var(--warning); border-color: var(--warning); width: auto;" onclick="editarDisciplina('${turmaSel}', '${d}')">Editar</button>
+                            <button class="btn-acao btn-outline" style="color: var(--danger); border-color: var(--danger); width: auto;" onclick="removerDisciplina('${turmaSel}', '${d}')">Excluir</button>
+                        </div>
                     </li>
                 `;
             });
@@ -422,19 +440,58 @@
             }
         }
 
-        // Função Nova: Excluir Disciplina
-        async function removerDisciplina(turma, disciplina) {
-            if(confirm(`Tem certeza que deseja excluir a disciplina "${disciplina}" do ${turma}?\n\nAs notas já lançadas não serão apagadas do banco, mas deixarão de aparecer no boletim.`)) {
+        // Função Nova: Editar Disciplina com Migração de Dados
+        async function editarDisciplina(turma, disciplinaAntiga) {
+            let novaDisciplina = prompt(`Editando o nome de "${disciplinaAntiga}":`, disciplinaAntiga);
+            
+            if(!novaDisciplina || novaDisciplina.trim() === "" || novaDisciplina === disciplinaAntiga) return;
+            novaDisciplina = novaDisciplina.trim();
+
+            if(configDisciplinas[turma].includes(novaDisciplina)) {
+                alert("Já existe uma disciplina com esse nome nesta turma.");
+                return;
+            }
+
+            if(confirm(`Atenção: Ao renomear "${disciplinaAntiga}" para "${novaDisciplina}", as notas já lançadas nos boletins dos alunos serão transferidas automaticamente para o novo nome. Confirma a alteração?`)) {
                 
-                // Filtra a lista removendo a disciplina escolhida
-                configDisciplinas[turma] = configDisciplinas[turma].filter(d => d !== disciplina);
+                // 1. Atualiza a lista na Configuração
+                let index = configDisciplinas[turma].indexOf(disciplinaAntiga);
+                configDisciplinas[turma][index] = novaDisciplina;
                 
                 try {
                     await db.collection("config").doc("disciplinas").set(configDisciplinas);
+                    
+                    // 2. Transfere os dados no Boletim de cada Aluno
+                    const snapshot = await db.collection("alunos").where("turma", "==", turma).get();
+                    let batch = db.batch();
+                    
+                    snapshot.forEach(doc => {
+                        let a = doc.data();
+                        if(a.notas && a.notas[disciplinaAntiga]) {
+                            // Copia os dados velhos para o nome novo e deleta o velho
+                            a.notas[novaDisciplina] = a.notas[disciplinaAntiga];
+                            delete a.notas[disciplinaAntiga];
+                            batch.update(doc.ref, { notas: a.notas });
+                        }
+                    });
+                    
+                    await batch.commit(); // Executa todas as transferências de uma vez
+
                     renderizarListaDisciplinas();
+                    alert("Disciplina renomeada e notas transferidas com sucesso!");
                 } catch(e) { 
-                    alert("Erro ao remover disciplina."); 
+                    alert("Erro ao editar disciplina: " + e.message); 
                 }
+            }
+        }
+
+        async function removerDisciplina(turma, disciplina) {
+            if(confirm(`Tem certeza que deseja excluir a disciplina "${disciplina}" do ${turma}?\n\nAs notas já lançadas não serão apagadas do banco, mas deixarão de aparecer no boletim.`)) {
+                configDisciplinas[turma] = configDisciplinas[turma].filter(d => d !== disciplina);
+                try {
+                    await db.collection("config").doc("disciplinas").set(configDisciplinas);
+                    renderizarListaDisciplinas();
+                } catch(e) { alert("Erro ao remover disciplina."); }
             }
         }
 
@@ -443,7 +500,6 @@
         // ==========================================
         function abrirLancamento(matricula) {
             let aluno = listaAlunos.find(a => a.matricula === matricula);
-            
             document.getElementById('lanc-matricula').value = matricula;
             document.getElementById('titulo-lancamento').textContent = 'Notas - ' + aluno.nome;
             document.getElementById('lanc-turma').textContent = aluno.turma;
@@ -507,7 +563,7 @@
         }
 
         // ==========================================
-        // ÁREA DO ALUNO E GERAÇÃO DE PDF
+        // ÁREA DO ALUNO E PDF
         // ==========================================
         async function entrarAluno() {
             let inputMatricula = document.getElementById('matricula-aluno').value.trim().toUpperCase();
@@ -572,7 +628,7 @@
                 }
 
                 if(!temNotasNaMateria) {
-                    htmlDisciplina += `<p style="padding: 15px; text-align: center; color: #777;">Nenhuma nota lançada nesta disciplina ainda.</p>`;
+                    htmlDisciplina += `<p style="padding: 15px; text-align: center; color: #777;">Nenhuma nota lançada nesta disciplina.</p>`;
                 }
 
                 htmlDisciplina += `</div>`;
