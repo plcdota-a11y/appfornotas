@@ -172,11 +172,11 @@
                     </select>
                 </div>
                 
-                <ul id="lista-disciplinas-atuais" style="padding-left: 20px; color: var(--primary-dark); font-weight: bold;">
+                <ul id="lista-disciplinas-atuais" style="list-style: none; padding: 0; color: var(--primary-dark); font-weight: bold;">
                     <!-- Preenchido via JS -->
                 </ul>
 
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <div style="display: flex; gap: 10px; margin-top: 20px; border-top: 2px solid var(--border); padding-top: 20px;">
                     <input type="text" id="nova-disciplina" placeholder="Ex: Matemática, História...">
                     <button onclick="adicionarDisciplina()" style="width: auto; white-space: nowrap;">Adicionar à Turma</button>
                 </div>
@@ -262,7 +262,7 @@
         let configDisciplinas = {
             "8º ANO": ["Língua Portuguesa", "Ensino Religioso"],
             "9º ANO": ["Língua Portuguesa", "Ciências"]
-        }; // Fallback caso não tenha no banco
+        };
 
         function mostrarTela(idTela) {
             document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
@@ -285,14 +285,12 @@
             }
         }
 
-        // Baixa do banco a lista de matérias do 8º e 9º ano
         async function carregarConfiguracoes() {
             try {
                 let doc = await db.collection("config").doc("disciplinas").get();
                 if(doc.exists) {
                     configDisciplinas = doc.data();
                 } else {
-                    // Se não existir, salva o padrão no banco
                     await db.collection("config").doc("disciplinas").set(configDisciplinas);
                 }
             } catch (error) { console.log("Erro ao carregar config:", error); }
@@ -323,7 +321,7 @@
             let novoAluno = {
                 nome: nome,
                 turma: turma,
-                notas: {} // Estrutura: { "Ciências": { "1": {prova: 5...} } }
+                notas: {} 
             };
 
             try {
@@ -376,7 +374,7 @@
         }
 
         // ==========================================
-        // ABA DE DISCIPLINAS
+        // ABA DE DISCIPLINAS (NOVO CÓDIGO INCLUÍDO)
         // ==========================================
         function abrirGerenciadorDisciplinas() {
             mostrarTela('tela-disciplinas');
@@ -389,12 +387,19 @@
             listaEl.innerHTML = '';
             
             let disciplinas = configDisciplinas[turmaSel] || [];
+            
             if(disciplinas.length === 0) {
-                listaEl.innerHTML = '<li>Nenhuma disciplina cadastrada.</li>';
+                listaEl.innerHTML = '<li style="color: #666; font-weight: normal;">Nenhuma disciplina cadastrada para esta turma.</li>';
                 return;
             }
+            
             disciplinas.forEach(d => {
-                listaEl.innerHTML += `<li>${d}</li>`;
+                listaEl.innerHTML += `
+                    <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                        <span>${d}</span>
+                        <button class="btn-acao btn-outline" style="color: var(--danger); border-color: var(--danger); width: auto;" onclick="removerDisciplina('${turmaSel}', '${d}')">Excluir</button>
+                    </li>
+                `;
             });
         }
 
@@ -405,17 +410,31 @@
 
             if(!configDisciplinas[turmaSel]) configDisciplinas[turmaSel] = [];
             
-            // Impede duplicata
             if(!configDisciplinas[turmaSel].includes(novaDisp)) {
                 configDisciplinas[turmaSel].push(novaDisp);
                 try {
                     await db.collection("config").doc("disciplinas").set(configDisciplinas);
                     document.getElementById('nova-disciplina').value = '';
                     renderizarListaDisciplinas();
-                    alert("Disciplina adicionada com sucesso!");
                 } catch(e) { alert("Erro ao salvar disciplina."); }
             } else {
                 alert("Esta disciplina já existe na turma.");
+            }
+        }
+
+        // Função Nova: Excluir Disciplina
+        async function removerDisciplina(turma, disciplina) {
+            if(confirm(`Tem certeza que deseja excluir a disciplina "${disciplina}" do ${turma}?\n\nAs notas já lançadas não serão apagadas do banco, mas deixarão de aparecer no boletim.`)) {
+                
+                // Filtra a lista removendo a disciplina escolhida
+                configDisciplinas[turma] = configDisciplinas[turma].filter(d => d !== disciplina);
+                
+                try {
+                    await db.collection("config").doc("disciplinas").set(configDisciplinas);
+                    renderizarListaDisciplinas();
+                } catch(e) { 
+                    alert("Erro ao remover disciplina."); 
+                }
             }
         }
 
@@ -429,7 +448,6 @@
             document.getElementById('titulo-lancamento').textContent = 'Notas - ' + aluno.nome;
             document.getElementById('lanc-turma').textContent = aluno.turma;
             
-            // Popula o select de disciplinas baseado na turma do aluno
             let selectDisc = document.getElementById('select-disciplina');
             selectDisc.innerHTML = '';
             let discTurma = configDisciplinas[aluno.turma] || [];
@@ -494,7 +512,6 @@
         async function entrarAluno() {
             let inputMatricula = document.getElementById('matricula-aluno').value.trim().toUpperCase();
             try {
-                // Antes de ler o aluno, garante que as configurações de matéria estão carregadas no sistema
                 if(Object.keys(configDisciplinas).length === 2) await carregarConfiguracoes();
                 
                 const doc = await db.collection("alunos").doc(inputMatricula).get();
@@ -563,7 +580,6 @@
             });
         }
 
-        // Função para transformar a visualização em PDF
         function gerarPDF() {
             const elemento = document.getElementById('boletim-imprimir');
             const nomeAluno = document.getElementById('boletim-nome').textContent;
@@ -576,7 +592,6 @@
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // Avisa o usuário e gera
             alert("Preparando o PDF, aguarde alguns segundos...");
             html2pdf().set(opcoes).from(elemento).save();
         }
